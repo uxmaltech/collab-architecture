@@ -1,0 +1,47 @@
+schema_version: "1.0"
+description: Vector embedding record schema for Collab Architecture.
+
+record:
+  required: [record_id, source_path, chunk_id, chunk_index, text, domain, confidence, status, embedding_model, embedding_dim, created, updated]
+  properties:
+    record_id: {type: string, pattern: "^VEC-[0-9a-f]{8}$"}
+    source_path: {type: string, minLength: 3}
+    chunk_id: {type: string, minLength: 8}
+    chunk_index: {type: integer, minimum: 0}
+    text: {type: string, minLength: 20}
+    domain: {type: string, pattern: "^DOM-[0-9]{3}$"}
+    node_refs: {type: array, items: {type: string}, minItems: 0}
+    confidence: {enum: [experimental, provisional, verified, deprecated]}
+    status: {enum: [ingested, reviewed, approved, deprecated]}
+    embedding_model: {type: string, minLength: 3}
+    embedding_dim: {type: integer, minimum: 64}
+    token_count: {type: integer, minimum: 1}
+    checksum: {type: string, pattern: "^[0-9a-f]{64}$"}
+    created: {type: string, format: date}
+    updated: {type: string, format: date}
+    reviewers: {type: array, items: {type: string}}
+    review_notes: {type: string}
+
+validation_rules:
+  deterministic_chunking: true
+  domain_scoping_required: true
+  checksum_required_for_approved: true
+  approved_requires_reviewer: true
+  deprecated_requires_replacement_note: false
+
+lifecycle:
+  states:
+    - ingested
+    - reviewed
+    - approved
+    - deprecated
+  transitions:
+    ingested:
+      - reviewed
+      - deprecated
+    reviewed:
+      - approved
+      - deprecated
+    approved:
+      - deprecated
+    deprecated: []

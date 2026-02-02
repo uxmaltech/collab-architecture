@@ -1,0 +1,96 @@
+schema_version: "1.0"
+description: Cross-layer contract schema for UxmalTech UI and backend guarantees.
+
+type: object
+required:
+  - contract_id
+  - name
+  - version
+  - status
+  - scope
+  - parties
+  - guarantees
+  - invariants
+  - breaking_change_policy
+  - created
+  - updated
+properties:
+  contract_id:
+    type: string
+    pattern: "^UIC-[0-9]{3}$"
+  name:
+    type: string
+    minLength: 3
+  version:
+    type: string
+    pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+  status:
+    type: string
+    enum: [active, deprecated]
+  scope:
+    type: string
+    minLength: 5
+  parties:
+    type: object
+    required: [ui, backend]
+    properties:
+      ui:
+        type: string
+        minLength: 2
+      backend:
+        type: string
+        minLength: 2
+  guarantees:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [id, statement, direction]
+      properties:
+        id: {type: string, pattern: "^G-[0-9]{3}$"}
+        statement: {type: string, minLength: 10}
+        direction: {type: string, enum: [ui_to_backend, backend_to_ui, bidirectional]}
+  invariants:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [id, statement]
+      properties:
+        id: {type: string, pattern: "^I-[0-9]{3}$"}
+        statement: {type: string, minLength: 10}
+  data_attributes:
+    type: array
+    items:
+      type: object
+      required: [name, purpose, owner]
+      properties:
+        name: {type: string, pattern: "^data-uxmal-[a-z0-9-]+$"}
+        purpose: {type: string, minLength: 5}
+        owner: {type: string, minLength: 2}
+  breaking_change_policy:
+    type: object
+    required: [allowed, requires, deprecation_window_days]
+    properties:
+      allowed: {type: boolean}
+      requires:
+        type: array
+        items: {type: string, enum: [new_major_version, migration_guide, cross_layer_review]}
+      deprecation_window_days: {type: integer, minimum: 30}
+  compatibility:
+    type: object
+    required: [forward_compatible, backward_compatible]
+    properties:
+      forward_compatible: {type: boolean}
+      backward_compatible: {type: boolean}
+  created:
+    type: string
+    format: date
+  updated:
+    type: string
+    format: date
+
+stability_rules:
+  - Contract versions are semver and MUST increment for any field change.
+  - Breaking changes are permitted only when a new major version and migration guide exist.
+  - UI and backend MUST agree on contract ownership before approval.

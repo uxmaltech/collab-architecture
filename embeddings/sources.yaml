@@ -1,0 +1,21 @@
+schema_version: "1.0"
+
+sources:
+  - id: canon-markdown
+    include:
+      - README.md
+      - domains/**/*.md
+      - knowledge/**/*.md
+      - prompts/**/*.md
+      - governance/**/*.md
+      - evolution/**/*.md
+    exclude:
+      - evolution/changelog.md
+    default_confidence: provisional
+
+  - id: canon-schemas
+    include:
+      - schema/**/*.yaml
+      - graph/**/*.yaml
+      - embeddings/*.yaml
+    default_confidence: verified

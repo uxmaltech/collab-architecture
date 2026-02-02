@@ -1,0 +1,226 @@
+schema_version: "1.0"
+created: 2026-02-02
+
+nodes:
+  - id: DOM-001
+    type: Domain
+    name: Backoffice UI
+    summary: Backoffice user interfaces rendered by PHP with explicit UI contracts.
+    scope: UxmalTech backoffice screens and UI components.
+    owners: [uxmaltech-architecture]
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backoffice-ui/principles.md]
+
+  - id: DOM-002
+    type: Domain
+    name: Backend CBQ
+    summary: Command and query backend architecture with strict separation.
+    scope: Backend services implementing CQRS patterns.
+    owners: [uxmaltech-architecture]
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backend-cbq/principles.md]
+
+  - id: DOM-003
+    type: Domain
+    name: Cross-Layer
+    summary: Contracts and invariants spanning UI and backend systems.
+    scope: UI to backend contracts and compatibility guarantees.
+    owners: [uxmaltech-architecture]
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/cross-layer/principles.md]
+
+  - id: AX-001
+    type: Axiom
+    name: Authoritative Canon
+    rule: Collab Architecture is the authoritative source of architectural truth.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/axioms/AX-001-authoritative-canon.md]
+
+  - id: AX-002
+    type: Axiom
+    name: Separation of Code and Canon
+    rule: Architecture is not defined in application code.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/axioms/AX-002-separation-of-code-and-canon.md]
+
+  - id: AX-003
+    type: Axiom
+    name: Traceable Architecture
+    rule: Every rule is traceable to an explicit canonical file and ID.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/axioms/AX-003-traceable-architecture.md]
+
+  - id: TECH-001
+    type: Technology
+    name: PHP
+    summary: Primary server-side rendering and request handling runtime.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backoffice-ui/rules.md]
+
+  - id: TECH-002
+    type: Technology
+    name: GridJS
+    summary: Standard tabular UI component for backoffice lists.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backoffice-ui/rules.md]
+
+  - id: TECH-003
+    type: Technology
+    name: Cron
+    summary: Scheduled execution system used for deterministic rebuilds.
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backend-cbq/rules.md]
+
+  - id: PAT-001
+    type: ArchitecturalPattern
+    name: PHP-First Rendering
+    summary: Server-rendered primary views with progressive JavaScript enhancement.
+    domain: DOM-001
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backoffice-ui/patterns/php-first-rendering.md]
+
+  - id: PAT-002
+    type: ArchitecturalPattern
+    name: data-uxmal-* Contract Binding
+    summary: Declarative UI intent bound via data-uxmal attributes.
+    domain: DOM-001
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backoffice-ui/patterns/data-uxmal-contracts.md]
+
+  - id: PAT-003
+    type: ArchitecturalPattern
+    name: Strict CQRS Separation
+    summary: Separate command and query paths with distinct models.
+    domain: DOM-002
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backend-cbq/patterns/strict-cqrs-separation.md]
+
+edges:
+  - id: EDGE-0001
+    type: APPLIES_TO
+    from: AX-001
+    to: DOM-001
+    rationale: Canon applies to backoffice UI domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0002
+    type: APPLIES_TO
+    from: AX-001
+    to: DOM-002
+    rationale: Canon applies to backend CBQ domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0003
+    type: APPLIES_TO
+    from: AX-001
+    to: DOM-003
+    rationale: Canon applies to cross-layer domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0004
+    type: USES_TECHNOLOGY
+    from: DOM-001
+    to: TECH-001
+    rationale: PHP is the primary rendering runtime for backoffice UI.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0005
+    type: USES_TECHNOLOGY
+    from: DOM-001
+    to: TECH-002
+    rationale: GridJS is the standard tabular UI component.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0006
+    type: USES_TECHNOLOGY
+    from: DOM-002
+    to: TECH-003
+    rationale: Cron schedules deterministic read model rebuilds.
+    confidence: provisional
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0007
+    type: IMPLEMENTS
+    from: PAT-001
+    to: DOM-001
+    rationale: PHP-first rendering is the canonical UI composition pattern.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0008
+    type: IMPLEMENTS
+    from: PAT-002
+    to: DOM-001
+    rationale: data-uxmal binding is the canonical UI behavior contract.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0009
+    type: IMPLEMENTS
+    from: PAT-003
+    to: DOM-002
+    rationale: Strict CQRS separation defines the backend CBQ architecture.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02

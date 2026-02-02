@@ -1,0 +1,93 @@
+CREATE SPACE IF NOT EXISTS collab_architecture(vid_type=FIXED_STRING(32));
+SLEEP 3;
+USE collab_architecture;
+
+CREATE TAG IF NOT EXISTS Node(
+  type string,
+  name string,
+  summary string,
+  content string,
+  status string,
+  confidence string,
+  version string,
+  created string,
+  updated string
+);
+
+CREATE EDGE IF NOT EXISTS IMPLEMENTS(
+  rationale string,
+  confidence string,
+  created string,
+  updated string
+);
+
+CREATE EDGE IF NOT EXISTS DEPENDS_ON(
+  rationale string,
+  confidence string,
+  created string,
+  updated string
+);
+
+CREATE EDGE IF NOT EXISTS APPLIES_TO(
+  rationale string,
+  confidence string,
+  created string,
+  updated string
+);
+
+CREATE EDGE IF NOT EXISTS CONFLICTS_WITH(
+  rationale string,
+  confidence string,
+  created string,
+  updated string
+);
+
+CREATE EDGE IF NOT EXISTS REPLACES(
+  rationale string,
+  confidence string,
+  created string,
+  updated string
+);
+
+CREATE EDGE IF NOT EXISTS JUSTIFIES(
+  rationale string,
+  confidence string,
+  created string,
+  updated string
+);
+
+CREATE EDGE IF NOT EXISTS USES_TECHNOLOGY(
+  rationale string,
+  confidence string,
+  created string,
+  updated string
+);
+
+INSERT VERTEX Node(type, name, summary, content, status, confidence, version, created, updated) VALUES
+  "DOM-001":("Domain", "Backoffice UI", "Backoffice user interfaces rendered by PHP with explicit UI contracts.", "scope=UxmalTech backoffice screens and UI components; owners=uxmaltech-architecture; source_files=domains/backoffice-ui/principles.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "DOM-002":("Domain", "Backend CBQ", "Command and query backend architecture with strict separation.", "scope=Backend services implementing CQRS patterns; owners=uxmaltech-architecture; source_files=domains/backend-cbq/principles.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "DOM-003":("Domain", "Cross-Layer", "Contracts and invariants spanning UI and backend systems.", "scope=UI to backend contracts and compatibility guarantees; owners=uxmaltech-architecture; source_files=domains/cross-layer/principles.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "AX-001":("Axiom", "Authoritative Canon", "Collab Architecture is the authoritative source of architectural truth.", "rule=Collab agents treat this repository as authoritative; source_files=knowledge/axioms/AX-001-authoritative-canon.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "AX-002":("Axiom", "Separation of Code and Canon", "Architecture is not defined in application code.", "rule=Architectural rules live in the canon; source_files=knowledge/axioms/AX-002-separation-of-code-and-canon.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "AX-003":("Axiom", "Traceable Architecture", "Every rule is traceable to an explicit canonical file and ID.", "rule=Traceability required for enforcement; source_files=knowledge/axioms/AX-003-traceable-architecture.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "TECH-001":("Technology", "PHP", "Primary server-side rendering and request handling runtime.", "source_files=domains/backoffice-ui/rules.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "TECH-002":("Technology", "GridJS", "Standard tabular UI component for backoffice lists.", "source_files=domains/backoffice-ui/rules.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "TECH-003":("Technology", "Cron", "Scheduled execution system used for deterministic rebuilds.", "source_files=domains/backend-cbq/rules.md", "active", "provisional", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "PAT-001":("ArchitecturalPattern", "PHP-First Rendering", "Server-rendered primary views with progressive JavaScript enhancement.", "domain=DOM-001; source_files=domains/backoffice-ui/patterns/php-first-rendering.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "PAT-002":("ArchitecturalPattern", "data-uxmal-* Contract Binding", "Declarative UI intent bound via data-uxmal attributes.", "domain=DOM-001; source_files=domains/backoffice-ui/patterns/data-uxmal-contracts.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02"),
+  "PAT-003":("ArchitecturalPattern", "Strict CQRS Separation", "Separate command and query paths with distinct models.", "domain=DOM-002; source_files=domains/backend-cbq/patterns/strict-cqrs-separation.md", "active", "verified", "v1.0.0", "2026-02-02", "2026-02-02");
+
+INSERT EDGE APPLIES_TO(rationale, confidence, created, updated) VALUES
+  "AX-001"->"DOM-001":("Canon applies to backoffice UI domain.", "verified", "2026-02-02", "2026-02-02"),
+  "AX-001"->"DOM-002":("Canon applies to backend CBQ domain.", "verified", "2026-02-02", "2026-02-02"),
+  "AX-001"->"DOM-003":("Canon applies to cross-layer domain.", "verified", "2026-02-02", "2026-02-02");
+
+INSERT EDGE USES_TECHNOLOGY(rationale, confidence, created, updated) VALUES
+  "DOM-001"->"TECH-001":("PHP is the primary rendering runtime for backoffice UI.", "verified", "2026-02-02", "2026-02-02"),
+  "DOM-001"->"TECH-002":("GridJS is the standard tabular UI component.", "verified", "2026-02-02", "2026-02-02"),
+  "DOM-002"->"TECH-003":("Cron schedules deterministic read model rebuilds.", "provisional", "2026-02-02", "2026-02-02");
+
+INSERT EDGE IMPLEMENTS(rationale, confidence, created, updated) VALUES
+  "PAT-001"->"DOM-001":("PHP-first rendering is the canonical UI composition pattern.", "verified", "2026-02-02", "2026-02-02"),
+  "PAT-002"->"DOM-001":("data-uxmal binding is the canonical UI behavior contract.", "verified", "2026-02-02", "2026-02-02"),
+  "PAT-003"->"DOM-002":("Strict CQRS separation defines the backend CBQ architecture.", "verified", "2026-02-02", "2026-02-02");

@@ -1,0 +1,95 @@
+SHELL := /bin/sh
+
+QDRANT_CONTAINER ?= collab-qdrant
+QDRANT_IMAGE ?= qdrant/qdrant:v1.8.1
+QDRANT_PORT ?= 6333
+QDRANT_GRPC_PORT ?= 6334
+QDRANT_URL ?= http://localhost:6333
+QDRANT_COLLECTION ?= collab-architecture-canon
+QDRANT_VECTOR_SIZE ?= 1536
+QDRANT_DISTANCE ?= Cosine
+QDRANT_BATCH_SIZE ?= 64
+
+NEBULA_COMPOSE ?= infra/nebula-compose.yaml
+NEBULA_VERSION ?= v3.6.0
+NEBULA_PROJECT ?= $(notdir $(CURDIR))
+NEBULA_NETWORK ?= $(NEBULA_PROJECT)_default
+NEBULA_CONSOLE_IMAGE ?= vesoft/nebula-console:$(NEBULA_VERSION)
+NEBULA_GRAPH_CONTAINER ?= nebula-graphd
+NEBULA_PORT ?= 9669
+NEBULA_USER ?= root
+NEBULA_PASSWORD ?= nebula
+
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula seed seed-embeddings seed-graph status logs-qdrant logs-nebula
+
+status:
+	@echo "Qdrant container: $(QDRANT_CONTAINER)"
+	@docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | sed 1d | grep -E '^$(QDRANT_CONTAINER)\b' || true
+	@echo "NebulaGraph containers:"
+	@docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | sed 1d | grep -E '^nebula-' || true
+
+qdrant-up:
+	@docker inspect $(QDRANT_CONTAINER) >/dev/null 2>&1 && echo "Qdrant already exists" || \
+		docker run -d --name $(QDRANT_CONTAINER) \
+		-p $(QDRANT_PORT):6333 \
+		-p $(QDRANT_GRPC_PORT):6334 \
+		-v $(QDRANT_CONTAINER)-data:/qdrant/storage \
+		$(QDRANT_IMAGE)
+
+qdrant-down:
+	@docker rm -f $(QDRANT_CONTAINER) >/dev/null 2>&1 || true
+
+nebula-up:
+	@NEBULA_VERSION=$(NEBULA_VERSION) docker compose -p $(NEBULA_PROJECT) -f $(NEBULA_COMPOSE) up -d
+
+nebula-down:
+	@NEBULA_VERSION=$(NEBULA_VERSION) docker compose -p $(NEBULA_PROJECT) -f $(NEBULA_COMPOSE) down -v
+
+wait-qdrant:
+	@i=0; \
+	until curl -sf $(QDRANT_URL)/collections >/dev/null 2>&1; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Qdrant not ready"; exit 1; fi; \
+		sleep 1; \
+	done; \
+	echo "Qdrant ready"
+
+wait-nebula:
+	@echo "Waiting for NebulaGraph on $(NEBULA_GRAPH_CONTAINER):$(NEBULA_PORT)"
+	@i=0; \
+	until docker run --rm --network $(NEBULA_NETWORK) $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_GRAPH_CONTAINER) -port $(NEBULA_PORT) \
+		-e 'SHOW SPACES' >/dev/null 2>&1; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "NebulaGraph not ready"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	echo "NebulaGraph ready"
+
+seed-embeddings: wait-qdrant
+	@python3 embeddings/ingest/ingest_embeddings.py
+	@QDRANT_URL=$(QDRANT_URL) \
+		QDRANT_COLLECTION=$(QDRANT_COLLECTION) \
+		QDRANT_VECTOR_SIZE=$(QDRANT_VECTOR_SIZE) \
+		QDRANT_DISTANCE=$(QDRANT_DISTANCE) \
+		QDRANT_BATCH_SIZE=$(QDRANT_BATCH_SIZE) \
+		python3 embeddings/ingest/seed_qdrant.py
+
+seed-graph: wait-nebula
+	@docker run --rm --network $(NEBULA_NETWORK) \
+		-v $(CURDIR)/graph/seed:/seed:ro \
+		$(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_GRAPH_CONTAINER) -port $(NEBULA_PORT) \
+		-f /seed/seed.ngql
+
+seed: db-up seed-embeddings seed-graph
+
+db-up: qdrant-up nebula-up
+
+db-down: qdrant-down nebula-down
+
+logs-qdrant:
+	@docker logs -f $(QDRANT_CONTAINER)
+
+logs-nebula:
+	@docker logs -f $(NEBULA_GRAPH_CONTAINER)

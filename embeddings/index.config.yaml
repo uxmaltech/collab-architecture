@@ -1,0 +1,15 @@
+schema_version: "1.0"
+index:
+  name: collab-architecture-canon
+  distance_metric: cosine
+  embedding_dim: 1536
+  embedding_model: text-embedding-3-large
+  namespace: uxmaltech
+  metadata_fields:
+    - source_path
+    - domain
+    - chunk_id
+    - chunk_index
+    - confidence
+    - status
+    - checksum

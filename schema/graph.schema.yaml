@@ -1,0 +1,179 @@
+schema_version: "1.0"
+description: Canonical knowledge-graph schema for Collab Architecture.
+
+node_types:
+  Domain:
+    id_pattern: "^DOM-[0-9]{3}$"
+    required: [id, type, name, summary, scope, owners, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^DOM-[0-9]{3}$"}
+      type: {const: Domain}
+      name: {type: string, minLength: 3}
+      summary: {type: string, minLength: 10}
+      scope: {type: string, minLength: 5}
+      owners: {type: array, items: {type: string, minLength: 2}, minItems: 1}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  ArchitecturalPattern:
+    id_pattern: "^PAT-[0-9]{3}$"
+    required: [id, type, name, summary, domain, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^PAT-[0-9]{3}$"}
+      type: {const: ArchitecturalPattern}
+      name: {type: string, minLength: 3}
+      summary: {type: string, minLength: 10}
+      domain: {type: string, pattern: "^DOM-[0-9]{3}$"}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  Axiom:
+    id_pattern: "^AX-[0-9]{3}$"
+    required: [id, type, name, rule, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^AX-[0-9]{3}$"}
+      type: {const: Axiom}
+      name: {type: string, minLength: 3}
+      rule: {type: string, minLength: 10}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  Rule:
+    id_pattern: "^RL-[0-9]{3}$"
+    required: [id, type, name, rule, domain, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^RL-[0-9]{3}$"}
+      type: {const: Rule}
+      name: {type: string, minLength: 3}
+      rule: {type: string, minLength: 10}
+      domain: {type: string, pattern: "^DOM-[0-9]{3}$"}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  Decision:
+    id_pattern: "^ADR-[0-9]{3}$"
+    required: [id, type, name, decision, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^ADR-[0-9]{3}$"}
+      type: {const: Decision}
+      name: {type: string, minLength: 3}
+      decision: {type: string, minLength: 10}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  AntiPattern:
+    id_pattern: "^AP-[0-9]{3}$"
+    required: [id, type, name, rule, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^AP-[0-9]{3}$"}
+      type: {const: AntiPattern}
+      name: {type: string, minLength: 3}
+      rule: {type: string, minLength: 10}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  Convention:
+    id_pattern: "^CN-[0-9]{3}$"
+    required: [id, type, name, rule, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^CN-[0-9]{3}$"}
+      type: {const: Convention}
+      name: {type: string, minLength: 3}
+      rule: {type: string, minLength: 10}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  UIContract:
+    id_pattern: "^UIC-[0-9]{3}$"
+    required: [id, type, name, contract, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^UIC-[0-9]{3}$"}
+      type: {const: UIContract}
+      name: {type: string, minLength: 3}
+      contract: {type: string, minLength: 10}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+  Technology:
+    id_pattern: "^TECH-[0-9]{3}$"
+    required: [id, type, name, summary, status, confidence, version, created, updated, source_files]
+    properties:
+      id: {type: string, pattern: "^TECH-[0-9]{3}$"}
+      type: {const: Technology}
+      name: {type: string, minLength: 2}
+      summary: {type: string, minLength: 10}
+      status: {enum: [active, deprecated]}
+      confidence: {enum: [experimental, provisional, verified, deprecated]}
+      version: {type: string, pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      created: {type: string, format: date}
+      updated: {type: string, format: date}
+      source_files: {type: array, items: {type: string, minLength: 3}, minItems: 1}
+
+edge_types:
+  IMPLEMENTS:
+    required: [id, type, from, to, rationale, confidence, created, updated]
+    from_types: [ArchitecturalPattern, Decision, Rule, Technology]
+    to_types: [Domain, Rule, UIContract, Technology]
+  DEPENDS_ON:
+    required: [id, type, from, to, rationale, confidence, created, updated]
+    from_types: [Domain, ArchitecturalPattern, Rule, Decision, Technology]
+    to_types: [Domain, Technology, UIContract, Rule]
+  APPLIES_TO:
+    required: [id, type, from, to, rationale, confidence, created, updated]
+    from_types: [Axiom, Rule, Convention]
+    to_types: [Domain, ArchitecturalPattern, UIContract, Technology]
+  CONFLICTS_WITH:
+    required: [id, type, from, to, rationale, confidence, created, updated]
+    from_types: [Rule, Decision, ArchitecturalPattern, AntiPattern]
+    to_types: [Rule, Decision, ArchitecturalPattern, AntiPattern]
+  REPLACES:
+    required: [id, type, from, to, rationale, confidence, created, updated]
+    from_types: [Decision, Rule, Convention, ArchitecturalPattern]
+    to_types: [Decision, Rule, Convention, ArchitecturalPattern]
+  JUSTIFIES:
+    required: [id, type, from, to, rationale, confidence, created, updated]
+    from_types: [Decision, Rule, Convention]
+    to_types: [Axiom, Decision, Rule]
+  USES_TECHNOLOGY:
+    required: [id, type, from, to, rationale, confidence, created, updated]
+    from_types: [Domain, ArchitecturalPattern, Rule, Decision]
+    to_types: [Technology]
+
+validation_constraints:
+  node_requires_valid_domain_reference: true
+  edge_must_reference_existing_nodes: true
+  confidence_levels: [experimental, provisional, verified, deprecated]
+  status_values: [active, deprecated]
+  version_format: "vMAJOR.MINOR.PATCH"

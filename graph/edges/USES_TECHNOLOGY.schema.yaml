@@ -1,0 +1,14 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: USES_TECHNOLOGY Edge
+version: "1.0"
+type: object
+required: [id, type, from, to, rationale, confidence, created, updated]
+properties:
+  id: {type: string, pattern: "^EDGE-[0-9]{4}$"}
+  type: {const: USES_TECHNOLOGY}
+  from: {type: string, pattern: "^(DOM|PAT|AX|RL|ADR|AP|CN|UIC|TECH)-[0-9]{3}$"}
+  to: {type: string, pattern: "^(DOM|PAT|AX|RL|ADR|AP|CN|UIC|TECH)-[0-9]{3}$"}
+  rationale: {type: string, minLength: 5}
+  confidence: {enum: [experimental, provisional, verified, deprecated]}
+  created: {type: string, format: date}
+  updated: {type: string, format: date}
