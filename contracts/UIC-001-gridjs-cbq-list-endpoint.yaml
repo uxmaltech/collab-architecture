@@ -1,0 +1,40 @@
+contract_id: "UIC-001"
+name: "GridJS list endpoint contract"
+version: "v1.0.0"
+status: "active"
+scope: "Backoffice list tables rendered via GridJS calling Backend CBQ queries"
+parties:
+  ui: "backoffice-ui GridJS component"
+  backend: "backend-cbq query handlers + GridJS response trait"
+
+guarantees:
+  - id: "G-001"
+    direction: "ui_to_backend"
+    statement: "UI will call a versioned query endpoint (qry.*.list.vN) using an HTTP GET with query parameters for pagination/search/sort when applicable."
+  - id: "G-002"
+    direction: "backend_to_ui"
+    statement: "Backend will return JSON with keys 'rows' (array) and 'count' (integer) compatible with GridJS data loading."
+  - id: "G-003"
+    direction: "backend_to_ui"
+    statement: "Backend will preserve backward compatibility of the response shape for at least one prior released version when introducing a new versioned endpoint."
+
+invariants:
+  - id: "I-001"
+    statement: "The response MUST be valid JSON and MUST include 'rows' and 'count' for every successful request."
+  - id: "I-002"
+    statement: "The endpoint MUST be versioned (v1, v2, etc.) and the query name MUST be stable."
+
+breaking_change_policy:
+  allowed: true
+  requires:
+    - new_major_version
+    - migration_guide
+    - cross_layer_review
+  deprecation_window_days: 30
+
+compatibility:
+  forward_compatible: true
+  backward_compatible: true
+
+created: "2026-02-04"
+updated: "2026-02-04"
