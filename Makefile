@@ -177,30 +177,33 @@ update-graph: wait-nebula
 		if [ $$i -ge 30 ]; then echo "NebulaGraph not ready"; exit 1; fi; \
 		sleep 2; \
 	done; \
-	docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
-		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
-		-e 'CREATE SPACE IF NOT EXISTS collab_architecture(vid_type=FIXED_STRING(32), partition_num=1, replica_factor=1);'; \
-	i=0; \
-	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
-		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
-		-e 'SHOW SPACES' 2>/dev/null | grep -q collab_architecture; do \
-		i=$$((i+1)); \
-		if [ $$i -ge 30 ]; then echo "Space collab_architecture not ready"; exit 1; fi; \
-		sleep 2; \
-	done; \
-	i=0; \
-	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
-		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
-		-e 'USE collab_architecture; DESCRIBE TAG Node;' 2>/dev/null | grep -q node_type; do \
-		i=$$((i+1)); \
-		if [ $$i -ge 30 ]; then echo "Schema not ready; run make seed for bootstrap"; exit 1; fi; \
-		sleep 2; \
-	done; \
+		docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+			-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+			-e 'CREATE SPACE IF NOT EXISTS $(ARCH_SPACE)(vid_type=FIXED_STRING(32), partition_num=1, replica_factor=1);'; \
+		i=0; \
+		until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+			-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+			-e 'SHOW SPACES' 2>/dev/null | grep -q $(ARCH_SPACE); do \
+			i=$$((i+1)); \
+			if [ $$i -ge 30 ]; then echo "Space $(ARCH_SPACE) not ready"; exit 1; fi; \
+			sleep 2; \
+		done; \
+		i=0; \
+		until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+			-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+			-e 'USE $(ARCH_SPACE); DESCRIBE TAG Node;' 2>/dev/null | grep -q node_type; do \
+			i=$$((i+1)); \
+			if [ $$i -ge 30 ]; then echo "Schema not ready; run make seed for bootstrap"; exit 1; fi; \
+			sleep 2; \
+		done; \
+	data_tmp=$$(mktemp); \
+	sed "s/USE collab_architecture;/USE $(ARCH_SPACE);/g" $(CURDIR)/graph/seed/data.ngql > $$data_tmp; \
 	out=$$(docker run --rm --network $$net \
-		-v $(CURDIR)/graph/seed:/seed:ro \
+		-v $$data_tmp:/seed/data.override.ngql:ro \
 		$(NEBULA_CONSOLE_IMAGE) \
 		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
-		-f /seed/data.ngql); \
+		-f /seed/data.override.ngql); \
+	rm -f $$data_tmp; \
 	echo "$$out"; \
 	echo "$$out" | grep -Fq '[ERROR' && exit 1 || true
 
@@ -227,7 +230,15 @@ tools-up: db-up
 		MCP_PORT=$(MCP_PORT) \
 		node tools/mcp-collab/server.mjs > $(MCP_LOG_FILE) 2>&1 & \
 		echo $$! > $(MCP_PID_FILE); \
-		echo "MCP server started on http://$(MCP_HOST):$(MCP_PORT)/mcp (PID $$(cat $(MCP_PID_FILE)))"; \
+		pid=$$(cat $(MCP_PID_FILE)); \
+		sleep 2; \
+		if kill -0 $$pid 2>/dev/null; then \
+			echo "MCP server started on http://$(MCP_HOST):$(MCP_PORT)/mcp (PID $$pid)"; \
+		else \
+			echo "Failed to start MCP server, see $(MCP_LOG_FILE) for details"; \
+			rm -f $(MCP_PID_FILE); \
+			exit 1; \
+		fi; \
 	fi
 
 tools-down:

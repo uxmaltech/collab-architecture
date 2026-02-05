@@ -1,4 +1,4 @@
-import * as z from 'zod/v4';
+import * as z from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer } from 'node:http';
@@ -46,14 +46,25 @@ function embedDeterministic(text, dim = VECTOR_SIZE) {
   return vector;
 }
 
+const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+function hashToUuid(value) {
+  const hex = crypto.createHash('sha256').update(value, 'utf8').digest('hex').slice(0, 32);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 function normalizePointId(pointId) {
-  if (typeof pointId === 'number') return pointId;
-  if (typeof pointId === 'string') {
-    const digest = crypto.createHash('sha256').update(pointId, 'utf8').digest('hex');
-    return parseInt(digest.slice(0, 16), 16);
+  if (typeof pointId === 'number') {
+    if (!Number.isSafeInteger(pointId) || pointId < 0) {
+      throw new Error('Point id must be a safe non-negative integer.');
+    }
+    return pointId;
   }
-  const digest = crypto.createHash('sha256').update(String(pointId), 'utf8').digest('hex');
-  return parseInt(digest.slice(0, 16), 16);
+  if (typeof pointId === 'string') {
+    if (UUID_RE.test(pointId)) return pointId;
+    return hashToUuid(pointId);
+  }
+  return hashToUuid(String(pointId));
 }
 
 function escapeNebula(value) {
@@ -92,8 +103,11 @@ function runNebulaQuery(query) {
     '-e',
     query
   ];
-  const result = spawnSync('docker', args, { encoding: 'utf8' });
+  const result = spawnSync('docker', args, { encoding: 'utf8', timeout: 30_000 });
   if (result.error) {
+    if (result.error.code === 'ETIMEDOUT') {
+      throw new Error('Nebula query timed out.');
+    }
     throw new Error(result.error.message);
   }
   if (result.status !== 0) {
@@ -264,7 +278,7 @@ function uniqueList(values) {
 
 function makeId(prefix, ...parts) {
   const base = parts.filter(Boolean).join('|');
-  const digest = crypto.createHash('sha1').update(base, 'utf8').digest('hex').slice(0, 12).toUpperCase();
+  const digest = crypto.createHash('sha256').update(base, 'utf8').digest('hex').slice(0, 12).toUpperCase();
   return `${prefix}-${digest}`;
 }
 
@@ -305,7 +319,7 @@ async function ensureBusinessSchema() {
 }
 
 function ensureConfidence(value) {
-  if (!value) return 'provisional';
+  if (value == null) return 'provisional';
   if (CONFIDENCE_LEVELS.includes(value)) return value;
   return 'provisional';
 }
@@ -651,25 +665,41 @@ const transport = new StreamableHTTPServerTransport({
 
 await server.connect(transport);
 
-const httpServer = createServer(async (req, res) => {
+async function handleHttpRequest(req, res) {
   if (req.url && req.url.startsWith('/mcp')) {
     if (req.method === 'POST') {
+      const MAX_BODY = 2 * 1024 * 1024;
       let body = '';
+      let aborted = false;
       req.on('data', (chunk) => {
+        if (aborted) return;
         body += chunk;
+        if (body.length > MAX_BODY) {
+          aborted = true;
+          res.statusCode = 413;
+          res.end('Payload too large');
+          req.destroy();
+        }
       });
       req.on('end', async () => {
-        let parsedBody;
-        if (body.trim().length > 0) {
-          try {
+        if (aborted) return;
+        try {
+          let parsedBody;
+          if (body.trim().length > 0) {
             parsedBody = JSON.parse(body);
-          } catch (err) {
-            res.statusCode = 400;
-            res.end('Invalid JSON body');
-            return;
           }
+          await transport.handleRequest(req, res, parsedBody);
+        } catch (err) {
+          if (res.headersSent) return;
+          res.statusCode = err instanceof SyntaxError ? 400 : 500;
+          res.end(err instanceof SyntaxError ? 'Invalid JSON body' : 'MCP handler error');
         }
-        await transport.handleRequest(req, res, parsedBody);
+      });
+      req.on('error', () => {
+        if (!res.headersSent) {
+          res.statusCode = 400;
+          res.end('Request error');
+        }
       });
       return;
     }
@@ -685,6 +715,15 @@ const httpServer = createServer(async (req, res) => {
 
   res.statusCode = 404;
   res.end('not found');
+}
+
+const httpServer = createServer((req, res) => {
+  void handleHttpRequest(req, res).catch((err) => {
+    if (!res.headersSent) {
+      res.statusCode = 500;
+      res.end('Internal Server Error');
+    }
+  });
 });
 
 httpServer.listen(MCP_PORT, MCP_HOST, () => {
