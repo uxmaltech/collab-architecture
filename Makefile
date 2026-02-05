@@ -16,11 +16,14 @@ NEBULA_PROJECT ?= $(notdir $(CURDIR))
 NEBULA_NETWORK ?= $(NEBULA_PROJECT)_default
 NEBULA_CONSOLE_IMAGE ?= vesoft/nebula-console:$(NEBULA_VERSION)
 NEBULA_GRAPH_CONTAINER ?= nebula-graphd
+NEBULA_ADDR ?= graphd
+NEBULA_STORAGE_HOST ?= storaged0
+NEBULA_STORAGE_PORT ?= 9779
 NEBULA_PORT ?= 9669
 NEBULA_USER ?= root
 NEBULA_PASSWORD ?= nebula
 
-.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula seed seed-embeddings seed-graph status logs-qdrant logs-nebula
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed seed-embeddings seed-graph status logs-qdrant logs-nebula
 
 status:
 	@echo "Qdrant container: $(QDRANT_CONTAINER)"
@@ -55,10 +58,12 @@ wait-qdrant:
 	echo "Qdrant ready"
 
 wait-nebula:
-	@echo "Waiting for NebulaGraph on $(NEBULA_GRAPH_CONTAINER):$(NEBULA_PORT)"
-	@i=0; \
-	until docker run --rm --network $(NEBULA_NETWORK) $(NEBULA_CONSOLE_IMAGE) \
-		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_GRAPH_CONTAINER) -port $(NEBULA_PORT) \
+	@net=$$(docker inspect -f '{{range $$k, $$v := .NetworkSettings.Networks}}{{$$k}}{{end}}' $(NEBULA_GRAPH_CONTAINER) 2>/dev/null); \
+	if [ -z "$$net" ]; then net="$(NEBULA_NETWORK)"; fi; \
+	echo "Waiting for NebulaGraph on $(NEBULA_ADDR):$(NEBULA_PORT) via $$net"; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
 		-e 'SHOW SPACES' >/dev/null 2>&1; do \
 		i=$$((i+1)); \
 		if [ $$i -ge 30 ]; then echo "NebulaGraph not ready"; exit 1; fi; \
@@ -76,11 +81,77 @@ seed-embeddings: wait-qdrant
 		python3 embeddings/ingest/seed_qdrant.py
 
 seed-graph: wait-nebula
-	@docker run --rm --network $(NEBULA_NETWORK) \
+	@net=$$(docker inspect -f '{{range $$k, $$v := .NetworkSettings.Networks}}{{$$k}}{{end}}' $(NEBULA_GRAPH_CONTAINER) 2>/dev/null); \
+	if [ -z "$$net" ]; then net="$(NEBULA_NETWORK)"; fi; \
+	hosts=$$(docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'SHOW HOSTS' 2>/dev/null); \
+	echo "$$hosts" | grep -q "$(NEBULA_STORAGE_HOST)" || \
+		docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+			-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+			-e 'ADD HOSTS "$(NEBULA_STORAGE_HOST)":$(NEBULA_STORAGE_PORT);'; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'SHOW HOSTS' 2>/dev/null | grep -q "\"$(NEBULA_STORAGE_HOST)\"" && \
+	      docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'SHOW HOSTS' 2>/dev/null | grep -q 'ONLINE'; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Storaged host not ONLINE"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'CREATE SPACE IF NOT EXISTS collab_architecture(vid_type=FIXED_STRING(32), partition_num=1, replica_factor=1);'; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'SHOW SPACES' 2>/dev/null | grep -q collab_architecture; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Space collab_architecture not ready"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	i=0; \
+	while docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'USE collab_architecture; SHOW TAGS' 2>/dev/null | grep -q 'SpaceNotFound'; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Space collab_architecture not ready for USE"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	docker run --rm --network $$net \
 		-v $(CURDIR)/graph/seed:/seed:ro \
 		$(NEBULA_CONSOLE_IMAGE) \
-		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_GRAPH_CONTAINER) -port $(NEBULA_PORT) \
-		-f /seed/seed.ngql
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-f /seed/schema.ngql; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'USE collab_architecture; DESCRIBE TAG Node;' 2>/dev/null | grep -q node_type; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Schema not ready"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'USE collab_architecture; INSERT VERTEX Node(node_type, name) VALUES "SCHEMA-CHECK":("SchemaCheck","SchemaCheck");' 2>/dev/null \
+		| grep -q 'Execution succeeded'; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Schema insert check failed"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'USE collab_architecture; DELETE VERTEX "SCHEMA-CHECK";' >/dev/null 2>&1 || true; \
+	out=$$(docker run --rm --network $$net \
+		-v $(CURDIR)/graph/seed:/seed:ro \
+		$(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-f /seed/data.ngql); \
+	echo "$$out"; \
+	echo "$$out" | grep -Fq '[ERROR' && exit 1 || true
 
 seed: db-up seed-embeddings seed-graph
 

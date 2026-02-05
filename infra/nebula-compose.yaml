@@ -5,7 +5,6 @@ services:
     ports:
       - "9559:9559"
       - "19559:19559"
-      - "19569:19569"
     volumes:
       - nebula-metad0:/usr/local/nebula/data/meta
     command:
@@ -25,7 +24,6 @@ services:
     ports:
       - "9779:9779"
       - "19779:19779"
-      - "19769:19769"
     volumes:
       - nebula-storaged0:/usr/local/nebula/data/storage
     command:
@@ -51,6 +49,8 @@ services:
     command:
       - nebula-graphd
       - --meta_server_addrs=metad0:9559
+      - --local_ip=graphd
+      - --ws_ip=graphd
       - --port=9669
       - --ws_http_port=19669
 

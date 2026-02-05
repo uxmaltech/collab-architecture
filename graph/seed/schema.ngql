@@ -1,0 +1,19 @@
+USE collab_architecture;
+
+DROP TAG IF EXISTS Node;
+DROP EDGE IF EXISTS IMPLEMENTS;
+DROP EDGE IF EXISTS DEPENDS_ON;
+DROP EDGE IF EXISTS APPLIES_TO;
+DROP EDGE IF EXISTS CONFLICTS_WITH;
+DROP EDGE IF EXISTS REPLACES;
+DROP EDGE IF EXISTS JUSTIFIES;
+DROP EDGE IF EXISTS USES_TECHNOLOGY;
+
+CREATE TAG IF NOT EXISTS Node(node_type string, name string, summary string, content string, status string, confidence string, version string, created string, updated string);
+CREATE EDGE IF NOT EXISTS IMPLEMENTS(rationale string, confidence string, created string, updated string);
+CREATE EDGE IF NOT EXISTS DEPENDS_ON(rationale string, confidence string, created string, updated string);
+CREATE EDGE IF NOT EXISTS APPLIES_TO(rationale string, confidence string, created string, updated string);
+CREATE EDGE IF NOT EXISTS CONFLICTS_WITH(rationale string, confidence string, created string, updated string);
+CREATE EDGE IF NOT EXISTS REPLACES(rationale string, confidence string, created string, updated string);
+CREATE EDGE IF NOT EXISTS JUSTIFIES(rationale string, confidence string, created string, updated string);
+CREATE EDGE IF NOT EXISTS USES_TECHNOLOGY(rationale string, confidence string, created string, updated string);
