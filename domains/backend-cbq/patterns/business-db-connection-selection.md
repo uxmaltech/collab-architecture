@@ -4,7 +4,7 @@ Pattern ID: CBQ-PAT-005
 Status: Active
 
 Context:
-Backoffice demos and deployments may switch between a local SQLite business DB and a MySQL business DB.
+Deployments may switch between different business data stores (for example, local SQLite vs MySQL) depending on environment constraints.
 
 Problem:
 Hard-coding database connections in queries or migrations makes environments diverge and breaks portability.
