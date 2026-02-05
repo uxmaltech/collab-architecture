@@ -9,6 +9,8 @@ QDRANT_COLLECTION ?= collab-architecture-canon
 QDRANT_VECTOR_SIZE ?= 1536
 QDRANT_DISTANCE ?= Cosine
 QDRANT_BATCH_SIZE ?= 64
+ARCH_COLLECTION ?= $(QDRANT_COLLECTION)
+BUSINESS_COLLECTION ?= business-architecture-canon
 
 NEBULA_COMPOSE ?= infra/nebula-compose.yaml
 NEBULA_VERSION ?= v3.6.0
@@ -22,8 +24,16 @@ NEBULA_STORAGE_PORT ?= 9779
 NEBULA_PORT ?= 9669
 NEBULA_USER ?= root
 NEBULA_PASSWORD ?= nebula
+NEBULA_SPACE ?= collab_architecture
+ARCH_SPACE ?= $(NEBULA_SPACE)
+BUSINESS_SPACE ?= business_architecture
 
-.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed seed-embeddings seed-graph status logs-qdrant logs-nebula
+MCP_HOST ?= 127.0.0.1
+MCP_PORT ?= 7337
+MCP_PID_FILE ?= tools/mcp-collab/.pid
+MCP_LOG_FILE ?= tools/mcp-collab/mcp.log
+
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph tools-up tools-config status logs-qdrant logs-nebula
 
 status:
 	@echo "Qdrant container: $(QDRANT_CONTAINER)"
@@ -154,6 +164,74 @@ seed-graph: wait-nebula
 	echo "$$out" | grep -Fq '[ERROR' && exit 1 || true
 
 seed: db-up seed-embeddings seed-graph
+
+update-graph: wait-nebula
+	@net=$$(docker inspect -f '{{range $$k, $$v := .NetworkSettings.Networks}}{{$$k}}{{end}}' $(NEBULA_GRAPH_CONTAINER) 2>/dev/null); \
+	if [ -z "$$net" ]; then net="$(NEBULA_NETWORK)"; fi; \
+	echo "Updating NebulaGraph on $(NEBULA_ADDR):$(NEBULA_PORT) via $$net"; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'SHOW SPACES' >/dev/null 2>&1; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "NebulaGraph not ready"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'CREATE SPACE IF NOT EXISTS collab_architecture(vid_type=FIXED_STRING(32), partition_num=1, replica_factor=1);'; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'SHOW SPACES' 2>/dev/null | grep -q collab_architecture; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Space collab_architecture not ready"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	i=0; \
+	until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-e 'USE collab_architecture; DESCRIBE TAG Node;' 2>/dev/null | grep -q node_type; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 30 ]; then echo "Schema not ready; run make seed for bootstrap"; exit 1; fi; \
+		sleep 2; \
+	done; \
+	out=$$(docker run --rm --network $$net \
+		-v $(CURDIR)/graph/seed:/seed:ro \
+		$(NEBULA_CONSOLE_IMAGE) \
+		-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+		-f /seed/data.ngql); \
+	echo "$$out"; \
+	echo "$$out" | grep -Fq '[ERROR' && exit 1 || true
+
+update: seed-embeddings update-graph
+
+tools-up: db-up
+	@cd tools/mcp-collab && [ -d node_modules ] || npm install
+	@if [ -f $(MCP_PID_FILE) ] && kill -0 "$$(cat $(MCP_PID_FILE))" 2>/dev/null; then \
+		echo "MCP server already running (PID $$(cat $(MCP_PID_FILE)))"; \
+	else \
+		QDRANT_URL=$(QDRANT_URL) \
+		QDRANT_VECTOR_SIZE=$(QDRANT_VECTOR_SIZE) \
+		ARCH_COLLECTION=$(ARCH_COLLECTION) \
+		BUSINESS_COLLECTION=$(BUSINESS_COLLECTION) \
+		NEBULA_CONSOLE_IMAGE=$(NEBULA_CONSOLE_IMAGE) \
+		NEBULA_NETWORK=$(NEBULA_NETWORK) \
+		NEBULA_ADDR=$(NEBULA_ADDR) \
+		NEBULA_PORT=$(NEBULA_PORT) \
+		NEBULA_USER=$(NEBULA_USER) \
+		NEBULA_PASSWORD=$(NEBULA_PASSWORD) \
+		ARCH_SPACE=$(ARCH_SPACE) \
+		BUSINESS_SPACE=$(BUSINESS_SPACE) \
+		MCP_HOST=$(MCP_HOST) \
+		MCP_PORT=$(MCP_PORT) \
+		node tools/mcp-collab/server.mjs > $(MCP_LOG_FILE) 2>&1 & \
+		echo $$! > $(MCP_PID_FILE); \
+		echo "MCP server started on http://$(MCP_HOST):$(MCP_PORT)/mcp (PID $$(cat $(MCP_PID_FILE)))"; \
+	fi
+
+tools-config:
+	@scripts/tools-config.sh
 
 db-up: qdrant-up nebula-up
 
