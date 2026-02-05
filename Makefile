@@ -33,7 +33,7 @@ MCP_PORT ?= 7337
 MCP_PID_FILE ?= tools/mcp-collab/.pid
 MCP_LOG_FILE ?= tools/mcp-collab/mcp.log
 
-.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph tools-up tools-config status logs-qdrant logs-nebula
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph tools-up tools-down tools-config status logs-qdrant logs-nebula
 
 status:
 	@echo "Qdrant container: $(QDRANT_CONTAINER)"
@@ -228,6 +228,20 @@ tools-up: db-up
 		node tools/mcp-collab/server.mjs > $(MCP_LOG_FILE) 2>&1 & \
 		echo $$! > $(MCP_PID_FILE); \
 		echo "MCP server started on http://$(MCP_HOST):$(MCP_PORT)/mcp (PID $$(cat $(MCP_PID_FILE)))"; \
+	fi
+
+tools-down:
+	@if [ -f $(MCP_PID_FILE) ]; then \
+		pid=$$(cat $(MCP_PID_FILE)); \
+		if kill -0 $$pid 2>/dev/null; then \
+			kill $$pid; \
+			echo "Stopped MCP server (PID $$pid)"; \
+		else \
+			echo "MCP server not running (stale PID $$pid)"; \
+		fi; \
+		rm -f $(MCP_PID_FILE); \
+	else \
+		echo "MCP server not running"; \
 	fi
 
 tools-config:

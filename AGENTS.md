@@ -21,6 +21,7 @@ Requires Docker and Python 3.
 - `make seed` runs both seeding flows.
 - `make update` refreshes embeddings and graph data without resetting schema.
 - `make tools-up` starts databases plus the local MCP server for technical and business context tools.
+- `make tools-down` stops the MCP server started by `make tools-up`.
 - `make tools-config` writes MCP client config to `~/.codex/config.toml` (prompts before overwrite).
 - Example Codex config snippet lives at `tools/mcp-collab/codex-config.example.toml`.
 - `make logs-qdrant` / `make logs-nebula` stream container logs.
