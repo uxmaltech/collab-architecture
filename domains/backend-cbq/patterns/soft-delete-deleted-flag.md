@@ -4,7 +4,7 @@ Pattern ID: CBQ-PAT-004
 Status: Active
 
 Context:
-Many Northwind-style tables are legacy and do not include standard Laravel soft deletes.
+Many business tables come from legacy or external schemas and do not include standard Laravel soft deletes.
 
 Problem:
 Hard deletes destroy auditability and break historical references. Mixed delete approaches create inconsistent query semantics.
