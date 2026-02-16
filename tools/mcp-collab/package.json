@@ -6,8 +6,8 @@
   "description": "MCP server for Collab Architecture graph and vector queries",
   "license": "UNLICENSED",
   "scripts": {
-    "start": "node server.mjs",
-    "dev": "node --watch server.mjs"
+    "start": "[ -f ../../.env ] && node --env-file=../../.env server.mjs || node server.mjs",
+    "dev": "[ -f ../../.env ] && node --watch --env-file=../../.env server.mjs || node --watch server.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",

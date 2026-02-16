@@ -21,6 +21,9 @@ export const MCP_HOST = process.env.MCP_HOST || '127.0.0.1';
 
 export const CONFIDENCE_LEVELS = ['experimental', 'provisional', 'verified', 'deprecated'];
 
+// Environment — 'local' allows running without auth, any other value requires MCP_API_KEYS
+export const MCP_ENV = (process.env.MCP_ENV || '').toLowerCase();
+
 // Auth — API keys in format 'clientId1:key1,clientId2:key2'
 export const MCP_API_KEYS = (process.env.MCP_API_KEYS || '')
   .split(',')

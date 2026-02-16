@@ -11,7 +11,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js';
 
-import { MCP_PORT, MCP_HOST, MCP_AUTH_ENABLED } from './config.mjs';
+import { MCP_PORT, MCP_HOST, MCP_AUTH_ENABLED, MCP_ENV } from './config.mjs';
 import { tokenVerifier } from './auth/token-verifier.mjs';
 import { registerAllTools } from './tools/index.mjs';
 import { registerAllResources } from './resources/index.mjs';
@@ -40,7 +40,20 @@ function createMcpServer() {
 const transports = {};
 
 // ---------------------------------------------------------------------------
-// Auth middleware — enabled when MCP_API_KEYS is set, passthrough otherwise
+// Auth safety check — refuse to start without auth unless MCP_ENV=local
+// ---------------------------------------------------------------------------
+
+if (!MCP_AUTH_ENABLED && MCP_ENV !== 'local') {
+  console.error(
+    'FATAL: MCP_API_KEYS is empty and MCP_ENV is not "local".\n' +
+    'Either set MCP_API_KEYS to enable authentication, or set MCP_ENV=local ' +
+    'to explicitly run without auth in development.'
+  );
+  process.exit(1);
+}
+
+// ---------------------------------------------------------------------------
+// Auth middleware — enabled when MCP_API_KEYS is set, passthrough in local
 // ---------------------------------------------------------------------------
 
 const authMiddleware = MCP_AUTH_ENABLED
@@ -185,11 +198,11 @@ app.delete('/mcp', authMiddleware, async (req, res) => {
 // ---------------------------------------------------------------------------
 
 app.listen(MCP_PORT, MCP_HOST, () => {
-  console.log(`MCP server listening on http://${MCP_HOST}:${MCP_PORT}/mcp`);
+  console.log(`MCP server listening on http://${MCP_HOST}:${MCP_PORT}/mcp (env: ${MCP_ENV || 'undefined'})`);
   if (MCP_AUTH_ENABLED) {
     console.log('Bearer token authentication is ENABLED');
   } else {
-    console.log('Authentication is DISABLED (set MCP_API_KEYS to enable)');
+    console.log('Authentication is DISABLED (MCP_ENV=local)');
   }
 });
 
