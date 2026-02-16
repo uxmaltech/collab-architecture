@@ -1,12 +1,17 @@
 {
   "name": "mcp-collab-architecture",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
   "private": true,
   "description": "MCP server for Collab Architecture graph and vector queries",
   "license": "UNLICENSED",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.5.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "express": "^5.1.0",
     "zod": "^3.25.0"
   }
 }

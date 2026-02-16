@@ -30,10 +30,9 @@ BUSINESS_SPACE ?= business_architecture
 
 MCP_HOST ?= 127.0.0.1
 MCP_PORT ?= 7337
-MCP_PID_FILE ?= tools/mcp-collab/.pid
-MCP_LOG_FILE ?= tools/mcp-collab/mcp.log
+MCP_API_KEYS ?=
 
-.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph tools-up tools-down tools-config status logs-qdrant logs-nebula
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph tools-up tools-down tools-status tools-config status logs-qdrant logs-nebula
 
 status:
 	@echo "Qdrant container: $(QDRANT_CONTAINER)"
@@ -210,10 +209,7 @@ update-graph: wait-nebula
 update: seed-embeddings update-graph
 
 tools-up: db-up
-	@cd tools/mcp-collab && [ -d node_modules ] || npm install
-	@if [ -f $(MCP_PID_FILE) ] && kill -0 "$$(cat $(MCP_PID_FILE))" 2>/dev/null; then \
-		echo "MCP server already running (PID $$(cat $(MCP_PID_FILE)))"; \
-	else \
+	@$(MAKE) -C tools/mcp-collab up \
 		QDRANT_URL=$(QDRANT_URL) \
 		QDRANT_VECTOR_SIZE=$(QDRANT_VECTOR_SIZE) \
 		ARCH_COLLECTION=$(ARCH_COLLECTION) \
@@ -228,32 +224,13 @@ tools-up: db-up
 		BUSINESS_SPACE=$(BUSINESS_SPACE) \
 		MCP_HOST=$(MCP_HOST) \
 		MCP_PORT=$(MCP_PORT) \
-		node tools/mcp-collab/server.mjs > $(MCP_LOG_FILE) 2>&1 & \
-		echo $$! > $(MCP_PID_FILE); \
-		pid=$$(cat $(MCP_PID_FILE)); \
-		sleep 2; \
-		if kill -0 $$pid 2>/dev/null; then \
-			echo "MCP server started on http://$(MCP_HOST):$(MCP_PORT)/mcp (PID $$pid)"; \
-		else \
-			echo "Failed to start MCP server, see $(MCP_LOG_FILE) for details"; \
-			rm -f $(MCP_PID_FILE); \
-			exit 1; \
-		fi; \
-	fi
+		MCP_API_KEYS=$(MCP_API_KEYS)
 
 tools-down:
-	@if [ -f $(MCP_PID_FILE) ]; then \
-		pid=$$(cat $(MCP_PID_FILE)); \
-		if kill -0 $$pid 2>/dev/null; then \
-			kill $$pid; \
-			echo "Stopped MCP server (PID $$pid)"; \
-		else \
-			echo "MCP server not running (stale PID $$pid)"; \
-		fi; \
-		rm -f $(MCP_PID_FILE); \
-	else \
-		echo "MCP server not running"; \
-	fi
+	@$(MAKE) -C tools/mcp-collab down
+
+tools-status:
+	@$(MAKE) -C tools/mcp-collab status
 
 tools-config:
 	@scripts/tools-config.sh

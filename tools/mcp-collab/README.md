@@ -1,17 +1,198 @@
 # Collab MCP Server
 
-This MCP server exposes technical and business context tools for Codex.
+MCP server that exposes technical and business context tools for AI agents.
+
+Built with the [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) (`@modelcontextprotocol/sdk@1.26.0`) following v2 recommended patterns.
+
+## Why this architecture
+
+The server was refactored from a single 732-line monolithic file (`server.mjs`) into a modular structure. Each change was driven by a specific problem identified by comparing the original implementation against the [SDK reference examples](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples/server/src).
+
+### Problem 1: Single shared transport broke multi-client scenarios
+
+The original server created **one** `StreamableHTTPServerTransport` and **one** `McpServer` at module level. Every HTTP request from every client passed through the same transport and the same server instance. This meant:
+
+- No isolation between clients — two agents connecting simultaneously shared state
+- No session tracking — no way to know which client sent which request
+- No cleanup — disconnected clients left stale state behind
+
+**Fix:** Per-session transport management. Each `initialize` request creates a new `StreamableHTTPServerTransport` + `McpServer` pair, stored in a `transports` map keyed by session UUID. The `mcp-session-id` header routes subsequent requests to the correct transport. Session cleanup happens automatically via `transport.onclose` and on graceful shutdown.
+
+### Problem 2: Manual HTTP body parsing reimplemented SDK functionality
+
+The original server used raw `node:http` with manual chunk accumulation, JSON parsing, body size limits, and error handling (~60 lines). The SDK already handles all of this through Express integration.
+
+**Fix:** Replaced with `createMcpExpressApp()` from the SDK, which provides an Express 5 app with `express.json()` built in plus DNS rebinding protection for localhost bindings. The entire HTTP layer went from 60 lines to 5.
+
+### Problem 3: No authentication for public-facing deployment
+
+The server had zero authentication. Any client that could reach the endpoint could execute graph queries and ingest data.
+
+**Fix:** Bearer token authentication using the SDK's `requireBearerAuth` middleware with a custom `OAuthTokenVerifier` that validates tokens against API keys from the `MCP_API_KEYS` environment variable. Auth is opt-in — when the variable is empty (default), the middleware is a passthrough, preserving the zero-config local development experience.
+
+### Problem 4: No capabilities declared
+
+The `McpServer` was created without declaring any capabilities. This meant clients had no way to know the server supported features like logging, and `sendLoggingMessage()` wouldn't work.
+
+**Fix:** Server factory now declares `{ capabilities: { logging: {} } }`. The SDK automatically advertises `tools`, `resources`, and `prompts` capabilities based on what's registered.
+
+### Problem 5: Duplicated tool handlers for aliases
+
+The backward-compatible aliases (`graph.query` → `architecture.graph.query`, `vector.search` → `architecture.vector.search`) were implemented by copy-pasting entire handler functions. Changing the primary tool's logic required remembering to update the alias too.
+
+**Fix:** Each tool module uses a handler factory function. Both the primary tool and its alias point to the same handler instance — zero duplication.
+
+### Problem 6: No tool annotations
+
+Clients had no way to know which tools were read-only (safe to call speculatively) versus which ones mutated state. The SDK supports `annotations` on tools for exactly this purpose.
+
+**Fix:** All query and search tools are annotated with `readOnlyHint: true, destructiveHint: false, idempotentHint: true`. The `business.rule` ingestion tool has `readOnlyHint: false` to signal it writes data.
+
+### Problem 7: SDK features left unused
+
+The MCP protocol defines three types of server-provided content: **tools** (actions), **resources** (data), and **prompts** (templates). The original server only registered tools, leaving resources and prompts unused.
+
+**Fix:** Added resources for infrastructure introspection (server config, graph schemas) and prompts with common query templates (explore architecture, find business rules, trace dependencies).
+
+### Problem 8: Monolithic 732-line file
+
+Configuration, crypto utilities, NebulaGraph client, Qdrant client, text processing, business logic, tool registration, and HTTP server were all in one file. Any change required scrolling through unrelated code.
+
+**Fix:** Modularized into purpose-specific files under `lib/`, `tools/`, `auth/`, `resources/`, and `prompts/`. Each module has a single responsibility and can be understood in isolation.
+
+## Architecture
+
+```
+tools/mcp-collab/
+  server.mjs              # Entrypoint: Express app, session management, auth
+  config.mjs              # Environment variables and constants
+  auth/
+    token-verifier.mjs    # Bearer token verification via API keys
+  lib/
+    hashing.mjs           # Deterministic embeddings, UUID hashing
+    nebula.mjs            # NebulaGraph client (docker + nebula-console)
+    qdrant.mjs            # Qdrant vector DB client
+    text.mjs              # Text chunking and tokenization
+    business-parser.mjs   # Business markdown parsing
+    graph-builder.mjs     # nGQL INSERT statement builders
+  tools/
+    index.mjs             # Tool registration orchestrator
+    architecture-graph-query.mjs
+    architecture-vector-search.mjs
+    business-graph-query.mjs
+    business-vector-search.mjs
+    business-rule.mjs
+  resources/
+    index.mjs             # MCP resources (config, graph schemas)
+  prompts/
+    index.mjs             # MCP prompts (query templates)
+```
+
+## Session lifecycle
+
+The server follows the SDK's per-session transport pattern:
+
+```
+Client                           Server
+  |                                |
+  |-- POST /mcp (initialize) ---->| Creates new Transport + McpServer
+  |                                | Stores in transports[sessionId]
+  |<-- 200 + mcp-session-id ------|
+  |                                |
+  |-- POST /mcp (tools/list) ---->| Looks up transport by session header
+  |   + mcp-session-id header      | Delegates to transport.handleRequest()
+  |<-- 200 + tool list ------------|
+  |                                |
+  |-- GET /mcp ------------------>| Opens SSE stream for server notifications
+  |<-- Server-Sent Events --------|
+  |                                |
+  |-- DELETE /mcp ---------------->| Closes transport, removes from map
+  |<-- 200 -----------------------|
+```
+
+Each session gets its own `McpServer` instance with all tools, resources, and prompts registered. This ensures complete isolation between clients.
 
 ## Tools
 
-Technical canon:
-- `architecture.graph.query` (alias: `graph.query`)
-- `architecture.vector.search` (alias: `vector.search`)
+**Technical canon:**
+- `architecture.graph.query` (alias: `graph.query`) — execute nGQL on the architecture graph
+- `architecture.vector.search` (alias: `vector.search`) — semantic search on technical docs
 
-Business context:
-- `business.graph.query`
-- `business.vector.search`
-- `business.rule` (ingest Markdown into business graph + vector store)
+**Business context:**
+- `business.graph.query` — execute nGQL on the business graph
+- `business.vector.search` — semantic search on business context
+- `business.rule` — ingest Markdown into business graph + vector store
+
+## Resources
+
+- `collab://config/summary` — current server configuration (Qdrant URL, vector size, collection names, graph spaces)
+- `collab://schema/architecture` — tags and edges in the architecture graph space
+- `collab://schema/business` — tags and edges in the business graph space
+
+## Prompts
+
+- `explore-architecture` — generates nGQL to list nodes by type
+- `find-business-rules` — combines vector search + graph query to find rules by domain
+- `trace-dependencies` — traces `DEPENDS_ON` edges forward and backward from a node
+
+## Running
+
+```bash
+# Start databases + MCP server
+make tools-up
+
+# Stop MCP server
+make tools-down
+
+# Write Codex client config
+make tools-config
+```
+
+Default endpoint: `http://127.0.0.1:7337/mcp`
+
+## Authentication
+
+Authentication is opt-in via the `MCP_API_KEYS` environment variable.
+
+**Disabled (default — local development):**
+```bash
+make tools-up
+# All /mcp requests pass through without auth
+# /health is always unauthenticated
+```
+
+**Enabled (production / public-facing):**
+```bash
+# Format: clientId1:key1,clientId2:key2
+MCP_API_KEYS=codex:my-secret-key,claude:another-key make tools-up
+```
+
+When enabled, all `/mcp` endpoints (POST, GET, DELETE) require:
+```
+Authorization: Bearer <key>
+```
+
+The implementation uses the SDK's `requireBearerAuth` middleware with a custom `OAuthTokenVerifier` that matches the bearer token against the configured API keys. Invalid or missing tokens receive a `401` response with a `WWW-Authenticate` header per the OAuth 2.0 spec.
+
+## Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `MCP_HOST` | `127.0.0.1` | Bind address |
+| `MCP_PORT` | `7337` | Listen port |
+| `MCP_API_KEYS` | *(empty)* | API keys for auth (`clientId:key,...`). Empty = auth disabled |
+| `ARCH_SPACE` | `collab_architecture` | NebulaGraph space for technical architecture |
+| `BUSINESS_SPACE` | `business_architecture` | NebulaGraph space for business context |
+| `ARCH_COLLECTION` | `collab-architecture-canon` | Qdrant collection for technical docs |
+| `BUSINESS_COLLECTION` | `business-architecture-canon` | Qdrant collection for business context |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant HTTP endpoint |
+| `QDRANT_VECTOR_SIZE` | `1536` | Embedding vector dimension |
+| `NEBULA_CONSOLE_IMAGE` | `vesoft/nebula-console:v3.6.0` | Docker image for nebula-console |
+| `NEBULA_NETWORK` | `collab-architecture_default` | Docker network for NebulaGraph |
+| `NEBULA_ADDR` | `graphd` | NebulaGraph graph service address |
+| `NEBULA_PORT` | `9669` | NebulaGraph graph service port |
+| `NEBULA_USER` | `root` | NebulaGraph username |
+| `NEBULA_PASSWORD` | `nebula` | NebulaGraph password |
 
 ## Example: business.rule
 
@@ -26,21 +207,6 @@ Business context:
 ```
 
 The tool will:
-- Create/update the business graph space `business_architecture`
-- Upsert semantic chunks into the Qdrant collection `business-architecture-canon`
-
-## Running
-
-- Start everything: `make tools-up`
-- Write Codex config: `make tools-config`
-
-Default MCP endpoint: `http://127.0.0.1:7337/mcp`
-
-## Configuration
-
-Environment variables used by the server:
-- `ARCH_SPACE`, `BUSINESS_SPACE`
-- `ARCH_COLLECTION`, `BUSINESS_COLLECTION`
-- `QDRANT_URL`, `QDRANT_VECTOR_SIZE`
-- `NEBULA_*` connection parameters
-- `MCP_HOST`, `MCP_PORT`
+1. Parse the markdown into structured concepts (domains, capabilities, commands, queries, entities, rules)
+2. Create graph nodes and edges in the `business_architecture` NebulaGraph space
+3. Chunk the text and upsert deterministic embeddings into the `business-architecture-canon` Qdrant collection
