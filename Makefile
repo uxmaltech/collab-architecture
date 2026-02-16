@@ -36,7 +36,7 @@ ARCH_SPACE        ?= $(NEBULA_SPACE)
 BUSINESS_SPACE    ?= business_architecture
 
 # ── MCP Server ──────────────────────────────────────
-MCP_ENV           ?= local
+# MCP_ENV must come from .env — no default here so missing = auth required
 MCP_HOST          ?= 127.0.0.1
 MCP_PORT          ?= 7337
 MCP_API_KEYS      ?=
