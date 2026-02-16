@@ -9,8 +9,6 @@ import crypto from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js';
-
 import { MCP_PORT, MCP_HOST, MCP_AUTH_ENABLED, MCP_ENV } from './config.mjs';
 import { tokenVerifier } from './auth/token-verifier.mjs';
 import { registerAllTools } from './tools/index.mjs';
@@ -56,8 +54,29 @@ if (!MCP_AUTH_ENABLED && MCP_ENV !== 'local') {
 // Auth middleware — enabled when MCP_API_KEYS is set, passthrough in local
 // ---------------------------------------------------------------------------
 
+// Custom Bearer middleware — validates API keys without triggering the
+// SDK's full OAuth 2.0 flow (which expects /register, /authorize, etc.).
+function simpleBearerAuth(verifier) {
+  return async (req, res, next) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ error: 'Missing Authorization header' });
+      }
+      const [type, token] = authHeader.split(' ');
+      if (type.toLowerCase() !== 'bearer' || !token) {
+        return res.status(401).json({ error: "Invalid Authorization header, expected 'Bearer TOKEN'" });
+      }
+      req.auth = await verifier.verifyAccessToken(token);
+      next();
+    } catch (err) {
+      return res.status(401).json({ error: err.message || 'Authentication failed' });
+    }
+  };
+}
+
 const authMiddleware = MCP_AUTH_ENABLED
-  ? requireBearerAuth({ verifier: tokenVerifier })
+  ? simpleBearerAuth(tokenVerifier)
   : (_req, _res, next) => next();
 
 // ---------------------------------------------------------------------------

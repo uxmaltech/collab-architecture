@@ -24,7 +24,6 @@ export const tokenVerifier = {
   async verifyAccessToken(token) {
     const keyEntry = MCP_API_KEYS.find((k) => k.key === token);
     if (!keyEntry) {
-      // Import the SDK error type so requireBearerAuth returns a proper 401
       const { InvalidTokenError } = await import(
         '@modelcontextprotocol/sdk/server/auth/errors.js'
       );

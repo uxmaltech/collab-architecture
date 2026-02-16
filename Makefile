@@ -41,7 +41,7 @@ MCP_HOST          ?= 127.0.0.1
 MCP_PORT          ?= 7337
 MCP_API_KEYS      ?=
 
-.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph tools-up tools-down tools-status tools-config status logs-qdrant logs-nebula
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph tools-up tools-dev tools-down tools-status tools-config status logs-qdrant logs-nebula
 
 status:
 	@echo "Qdrant container: $(QDRANT_CONTAINER)"
@@ -219,6 +219,9 @@ update: seed-embeddings update-graph
 
 tools-up: db-up
 	@$(MAKE) -C tools/mcp-collab up
+
+tools-dev: db-up
+	@$(MAKE) -C tools/mcp-collab dev
 
 tools-down:
 	@$(MAKE) -C tools/mcp-collab down

@@ -8,7 +8,7 @@ SHELL := /bin/sh
 MCP_PID_FILE ?= .pid
 MCP_LOG_FILE ?= mcp.log
 
-.PHONY: up down status install
+.PHONY: up down dev status install
 
 install:
 	@[ -d node_modules ] || npm install
@@ -24,11 +24,21 @@ up: install
 		if kill -0 $$pid 2>/dev/null; then \
 			echo "MCP server started on http://$${MCP_HOST:-127.0.0.1}:$${MCP_PORT:-7337}/mcp (PID $$pid)"; \
 		else \
-			echo "Failed to start MCP server, see $(MCP_LOG_FILE) for details"; \
+			echo "❌ Failed to start MCP server"; \
+			echo ""; \
+			echo "Last 20 lines of $(MCP_LOG_FILE):"; \
+			echo "─────────────────────────────────────────"; \
+			tail -n 20 $(MCP_LOG_FILE); \
+			echo "─────────────────────────────────────────"; \
+			echo "Full log: cat tools/mcp-collab/$(MCP_LOG_FILE)"; \
 			rm -f $(MCP_PID_FILE); \
 			exit 1; \
 		fi; \
 	fi
+
+dev: install
+	@echo "MCP server (watch mode) on http://$${MCP_HOST:-127.0.0.1}:$${MCP_PORT:-7337}/mcp"
+	@node --watch --env-file=../../.env server.mjs
 
 down:
 	@if [ -f $(MCP_PID_FILE) ]; then \
