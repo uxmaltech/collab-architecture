@@ -28,7 +28,9 @@ The original server used raw `node:http` with manual chunk accumulation, JSON pa
 
 The server had zero authentication. Any client that could reach the endpoint could execute graph queries and ingest data.
 
-**Fix:** Bearer token authentication using the SDK's `requireBearerAuth` middleware with a custom `OAuthTokenVerifier` that validates tokens against API keys from the `MCP_API_KEYS` environment variable. Auth is opt-in — when the variable is empty (default), the middleware is a passthrough, preserving the zero-config local development experience.
+**Fix:** Bearer token authentication using a custom `simpleBearerAuth` middleware that validates tokens against API keys from the `MCP_API_KEYS` environment variable. We intentionally avoid the SDK's `requireBearerAuth` because it sends `WWW-Authenticate: Bearer` headers that trigger the full OAuth 2.0 discovery flow in MCP clients (Inspector, Copilot, etc.), making them attempt `POST /register`, `GET /authorize`, etc. The custom middleware validates the same way but returns plain 401 JSON responses without OAuth headers.
+
+Additionally, the server requires `MCP_ENV=local` to be explicitly set when running without API keys — it refuses to start otherwise, preventing accidental unauthenticated deployments.
 
 ### Problem 4: No capabilities declared
 
@@ -138,49 +140,73 @@ Each session gets its own `McpServer` instance with all tools, resources, and pr
 ## Running
 
 ```bash
-# Start databases + MCP server
+cp ../../.env.example ../../.env   # create .env with defaults (first time only)
+
+# Start databases + MCP server (background)
 make tools-up
+
+# Development mode — foreground with auto-reload on file changes
+make tools-dev
 
 # Stop MCP server
 make tools-down
 
+# Check server status
+make tools-status
+
 # Write Codex client config
 make tools-config
+```
+
+Or directly via npm (assumes databases are already running):
+```bash
+npm start          # background-friendly, loads ../../.env if present
+npm run dev        # foreground with --watch, loads ../../.env if present
 ```
 
 Default endpoint: `http://127.0.0.1:7337/mcp`
 
 ## Authentication
 
-Authentication is opt-in via the `MCP_API_KEYS` environment variable.
+Authentication is controlled by two environment variables in `.env`:
 
-**Disabled (default — local development):**
+**Local development (no auth):**
 ```bash
-make tools-up
-# All /mcp requests pass through without auth
-# /health is always unauthenticated
+# .env
+MCP_ENV=local
+MCP_API_KEYS=
+```
+All `/mcp` requests pass through without auth. `/health` is always unauthenticated.
+
+**Production (auth required):**
+```bash
+# .env
+MCP_ENV=production
+MCP_API_KEYS=codex:my-secret-key,claude:another-key
 ```
 
-**Enabled (production / public-facing):**
-```bash
-# Format: clientId1:key1,clientId2:key2
-MCP_API_KEYS=codex:my-secret-key,claude:another-key make tools-up
-```
-
-When enabled, all `/mcp` endpoints (POST, GET, DELETE) require:
+When `MCP_API_KEYS` is set, all `/mcp` endpoints (POST, GET, DELETE) require:
 ```
 Authorization: Bearer <key>
 ```
 
-The implementation uses the SDK's `requireBearerAuth` middleware with a custom `OAuthTokenVerifier` that matches the bearer token against the configured API keys. Invalid or missing tokens receive a `401` response with a `WWW-Authenticate` header per the OAuth 2.0 spec.
+**Safety rule:** the server refuses to start if `MCP_API_KEYS` is empty and `MCP_ENV` is not `local`:
+```
+FATAL: MCP_API_KEYS is empty and MCP_ENV is not "local".
+```
+
+The `MCP_API_KEYS` format is validated at startup — missing `:`, empty clientId/key, or multiple `:` in an entry will produce a clear error.
+
+The implementation uses a custom `simpleBearerAuth` middleware instead of the SDK's `requireBearerAuth`. The SDK middleware sends `WWW-Authenticate: Bearer` headers that cause MCP clients (Inspector, Copilot) to initiate a full OAuth 2.0 flow (`POST /register`, `GET /authorize`, etc.). The custom middleware validates tokens identically but returns plain 401 JSON without OAuth headers.
 
 ## Configuration
 
 | Variable | Default | Description |
 |---|---|---|
+| `MCP_ENV` | *(none)* | `local` = allow no auth. Any other value or unset = require `MCP_API_KEYS` |
 | `MCP_HOST` | `127.0.0.1` | Bind address |
 | `MCP_PORT` | `7337` | Listen port |
-| `MCP_API_KEYS` | *(empty)* | API keys for auth (`clientId:key,...`). Empty = auth disabled |
+| `MCP_API_KEYS` | *(empty)* | API keys for auth (`clientId:key,...`). Empty + `MCP_ENV=local` = no auth |
 | `ARCH_SPACE` | `collab_architecture` | NebulaGraph space for technical architecture |
 | `BUSINESS_SPACE` | `business_architecture` | NebulaGraph space for business context |
 | `ARCH_COLLECTION` | `collab-architecture-canon` | Qdrant collection for technical docs |
