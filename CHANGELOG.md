@@ -1,56 +1,76 @@
 # Changelog
 
+## [0.3.1] — 2026-02-19
+
+Fixes for seeding and MCP connectivity against an external NebulaGraph cluster (Coolify/Tailscale). All changes are backwards-compatible with the local Docker stack (`EXTERNAL_SERVICES=false`).
+
+### Fixed
+
+- **`seed-graph.mjs` — SDK response format** — the `@nebula-contrib/nebula-nodejs` SDK returns a columnar format (`{ data: { ColumnName: [v1, v2] } }`), not an array of objects. Fixed `SHOW HOSTS` and `DESCRIBE TAG` checks to use `result?.data?.Status?.includes('ONLINE')` and `result?.data?.Field?.length > 0` respectively.
+- **`seed-graph.mjs` — `;` inside strings** — `parseNgql` was splitting on all semicolons, breaking `INSERT VERTEX` statements whose string values contain `;` (e.g. `scope=...; owners=...`). Replaced with a character-by-character parser that respects quoted strings.
+- **`seed-graph.mjs` — storage hosts pre-flight** — added a wait loop before `CREATE SPACE` that polls `SHOW HOSTS` until at least one storage host is `ONLINE`. Prevents the "Host not enough!" error on fresh clusters where storaged registers asynchronously.
+- **`tools/mcp-collab/Makefile` — missing `--env-file` in `up` target** — `make tools-up` was launching `node server.mjs` without loading `.env`, so `NEBULA_ADDR` fell back to the default `graphd` instead of the external host. Now consistent with the `dev` target.
+- **`lib/nebula.mjs` — silent NebulaGraph errors** — `executeOne` now checks `result.error_code` and throws with the real error message instead of returning the error object silently to the model.
+- **`lib/nebula.mjs` — model-unfriendly response format** — `formatResult` now converts the columnar SDK result into a row-oriented array (`[{ Col: val }, ...]`) that is easier for a language model to read.
+
+### Added
+
+- **`make reset`** — drops the `collab_architecture` space from NebulaGraph and deletes the Qdrant collection. Resets to pre-seed state. Works with both `EXTERNAL_SERVICES=true` and `false`.
+- **`make reset-graph`** — NebulaGraph reset only (`DROP SPACE IF EXISTS`). Uses Node script for external, `nebula-console` Docker for local.
+- **`make reset-embeddings`** — Qdrant reset only (HTTP `DELETE /collections/:name`).
+- **`scripts/reset-graph.mjs`** — Node script backing `make reset-graph` for the external services path.
+
 ## [0.3.0] — 2026-02-16
 
-Refactor completo del MCP server. El monolito de 732 lineas (`tools/mcp-collab/server.mjs`) se reescribio como una arquitectura modular de 18 archivos siguiendo los patrones v2 del SDK (`@modelcontextprotocol/sdk@1.26.0`).
+Full refactor of MCP server. The 732-line monolith (`tools/mcp-collab/server.mjs`) was rewritten as a modular architecture of 18 files following SDK v2 patterns (`@modelcontextprotocol/sdk@1.26.0`).
 
-### Arquitectura
+### Architecture
 
-- **Modularizacion** — server.mjs paso de 732 a ~260 lineas. Logica extraida a `lib/` (6 modulos), `tools/` (6 modulos), `auth/`, `resources/`, `prompts/` y `config.mjs`.
-- **Per-session transports** — cada cliente recibe su propio `StreamableHTTPServerTransport` + `McpServer`, aislando sesiones completamente. Antes todos los clientes compartian un unico transport.
-- **Makefile delegado** — root Makefile delega `tools-up`/`tools-down`/`tools-status` a `tools/mcp-collab/Makefile` via `$(MAKE) -C`.
+- **Modularization** — server.mjs went from 732 to ~260 lines. Logic extracted to `lib/` (6 modules), `tools/` (6 modules), `auth/`, `resources/`, `prompts/` and `config.mjs`.
+- **Per-session transports** — each client gets its own `StreamableHTTPServerTransport` + `McpServer`, fully isolating sessions. Previously all clients shared a single transport.
+- **Delegated Makefile** — root Makefile delegates `tools-up`/`tools-down`/`tools-status` to `tools/mcp-collab/Makefile` via `$(MAKE) -C`.
 
-### Autenticacion
+### Authentication
 
-- **Bearer token auth** — middleware `simpleBearerAuth` que valida tokens contra API keys configuradas en `MCP_API_KEYS`. No usa el `requireBearerAuth` del SDK porque ese envia headers OAuth (`WWW-Authenticate: Bearer`) que disparan el flujo completo OAuth en clientes MCP (Inspector, Copilot, etc.).
-- **`MCP_ENV` safety check** — el servidor rechaza arrancar si `MCP_API_KEYS` esta vacio y `MCP_ENV` no es `local`. Esto previene deployments accidentales sin autenticacion.
-- **Validacion de formato** — `MCP_API_KEYS` se valida al arrancar: detecta falta de `:`, clientId o key vacios, y multiples `:`.
+- **Bearer token auth** — `simpleBearerAuth` middleware that validates tokens against API keys configured in `MCP_API_KEYS`. Does not use the SDK's `requireBearerAuth` because it sends OAuth headers (`WWW-Authenticate: Bearer`) that trigger the full OAuth flow in MCP clients (Inspector, Copilot, etc.).
+- **`MCP_ENV` safety check** — server refuses to start if `MCP_API_KEYS` is empty and `MCP_ENV` is not `local`. This prevents accidental deployments without authentication.
+- **Format validation** — `MCP_API_KEYS` is validated at startup: detects missing `:`, empty clientId or key, and multiple `:`.
 
-### Variables de entorno
+### Environment variables
 
-- **`.env` centralizado** — todas las variables viven en un `.env` en la raiz. Make lo carga con `-include .env` + `export`. Node lo carga con `--env-file` cuando se usa `npm start`/`npm run dev`.
-- **`.env.example`** — template trackeado en git con todos los valores por defecto.
-- **`config.mjs`** — fuente unica de verdad para configuracion en Node. Lee `process.env` con defaults como ultima linea de defensa.
+- **Centralized `.env`** — all variables live in a single `.env` at the root. Make loads it with `-include .env` + `export`. Node loads it with `--env-file` when using `npm start`/`npm run dev`.
+- **`.env.example`** — template tracked in git with all default values.
+- **`config.mjs`** — single source of truth for Node configuration. Reads `process.env` with defaults as last line of defense.
 
 ### Tools
 
-- **Tool annotations** — todos los tools declaran `readOnlyHint`, `destructiveHint`, `idempotentHint`. Query/search tools son read-only; `business.rule` es de escritura.
-- **Deduplicacion de aliases** — `graph.query` y `architecture.graph.query` (y sus equivalentes de vector search) comparten el mismo handler en vez de duplicar codigo.
+- **Tool annotations** — all tools declare `readOnlyHint`, `destructiveHint`, `idempotentHint`. Query/search tools are read-only; `business.rule` is write.
+- **Alias deduplication** — `graph.query` and `architecture.graph.query` (and their vector search equivalents) share the same handler instead of duplicating code.
 
-### MCP Resources y Prompts
+### MCP Resources and Prompts
 
 - **Resources**: `collab://config/summary`, `collab://schema/architecture`, `collab://schema/business`.
 - **Prompts**: `explore-architecture`, `find-business-rules`, `trace-dependencies`.
 
 ### Capabilities
 
-- **Logging** — servidor declara `{ capabilities: { logging: {} } }`, habilitando `server.sendLoggingMessage()` hacia clientes conectados.
+- **Logging** — server declares `{ capabilities: { logging: {} } }`, enabling `server.sendLoggingMessage()` to connected clients.
 
 ### Developer experience
 
-- **`make tools-dev`** — modo desarrollo con `--watch` (reinicio automatico al editar archivos). Ejecuta en foreground.
-- **Diagnostico de errores** — cuando `make tools-up` falla, muestra las ultimas 20 lineas del log directamente en terminal.
-- **`npm start` / `npm run dev`** — scripts en package.json con carga condicional de `.env`.
-- **`CLAUDE.md`** — guia para agentes AI que trabajan en el directorio del MCP.
+- **`make tools-dev`** — development mode with `--watch` (auto-restart on file changes). Runs in foreground.
+- **Error diagnostics** — when `make tools-up` fails, shows the last 20 log lines directly in terminal.
+- **`npm start` / `npm run dev`** — package.json scripts with conditional `.env` loading.
+- **`CLAUDE.md`** — guide for AI agents working in the MCP directory.
 
 ## [0.2.0] — 2025-12-XX
 
-- `business.rule` tool para ingesta de reglas de negocio en grafo + vectores.
-- `business.graph.query` y `business.vector.search` tools.
-- Target `tools-down` en Makefile.
+- `business.rule` tool for business rule ingestion into graph + vectors.
+- `business.graph.query` and `business.vector.search` tools.
+- `tools-down` target in Makefile.
 
 ## [0.1.0] — 2025-11-XX
 
-- Server MCP inicial con `architecture.graph.query` y `architecture.vector.search`.
-- Aliases `graph.query` y `vector.search`.
-- Integracion con NebulaGraph y Qdrant.
+- Initial MCP server with `architecture.graph.query` and `architecture.vector.search`.
+- Aliases `graph.query` and `vector.search`.
+- Integration with NebulaGraph and Qdrant.

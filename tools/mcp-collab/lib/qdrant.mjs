@@ -2,15 +2,27 @@
 // Qdrant vector DB client — collection management, search, upsert
 // ---------------------------------------------------------------------------
 
-import { QDRANT_URL, VECTOR_SIZE } from '../config.mjs';
+import { QDRANT_URL, QDRANT_API_KEY, VECTOR_SIZE } from '../config.mjs';
 import { embedDeterministic } from './hashing.mjs';
+
+/**
+ * Base headers for every Qdrant request.
+ * Includes the api-key header only when QDRANT_API_KEY is set.
+ */
+function qdrantHeaders(extra = {}) {
+  const headers = { 'Content-Type': 'application/json', ...extra };
+  if (QDRANT_API_KEY) headers['api-key'] = QDRANT_API_KEY;
+  return headers;
+}
 
 /**
  * Ensure a Qdrant collection exists with the expected vector size.
  * Creates the collection if missing; throws if size mismatches.
  */
 export async function ensureCollection(collection) {
-  const res = await fetch(`${QDRANT_URL}/collections/${collection}`);
+  const res = await fetch(`${QDRANT_URL}/collections/${collection}`, {
+    headers: qdrantHeaders()
+  });
   if (res.status === 200) {
     const json = await res.json();
     const size = json?.result?.config?.params?.vectors?.size;
@@ -28,7 +40,7 @@ export async function ensureCollection(collection) {
   }
   const createRes = await fetch(`${QDRANT_URL}/collections/${collection}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: qdrantHeaders(),
     body: JSON.stringify({
       vectors: {
         size: VECTOR_SIZE,
@@ -57,7 +69,7 @@ export async function qdrantSearch({ query, limit = 5, filter = null, collection
 
   const res = await fetch(`${QDRANT_URL}/collections/${collection}/points/search`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: qdrantHeaders(),
     body: JSON.stringify(body)
   });
   const json = await res.json();
@@ -75,7 +87,7 @@ export async function qdrantUpsert({ points, collection }) {
   if (!points.length) return;
   const res = await fetch(`${QDRANT_URL}/collections/${collection}/points?wait=true`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: qdrantHeaders(),
     body: JSON.stringify({ points })
   });
   const json = await res.json();

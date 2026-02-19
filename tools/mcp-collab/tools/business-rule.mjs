@@ -67,7 +67,7 @@ export function register(server) {
       let schemaReady = false;
       for (let attempt = 0; attempt < 3; attempt += 1) {
         try {
-          ensureBusinessSchema();
+          await ensureBusinessSchema();
           schemaReady = true;
           break;
         } catch (err) {
@@ -222,7 +222,7 @@ export function register(server) {
         ...edgeStatements
       ].filter(Boolean);
 
-      runNebulaQuery(nebulaStatements.join('\n'));
+      await runNebulaQuery(nebulaStatements.join('\n'));
 
       // --- Chunk and upsert into vector store ---
       const chunks = chunkText(markdown);

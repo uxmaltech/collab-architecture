@@ -20,7 +20,7 @@ const INPUT_SCHEMA = {
 function makeHandler(space) {
   return async ({ query }) => {
     const finalQuery = `USE ${space};\n${query.trim()}`;
-    const output = runNebulaQuery(finalQuery);
+    const output = await runNebulaQuery(finalQuery);
     return { content: [{ type: 'text', text: output || '(no output)' }] };
   };
 }

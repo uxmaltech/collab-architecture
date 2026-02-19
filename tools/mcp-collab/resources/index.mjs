@@ -67,8 +67,8 @@ export function registerAllResources(server) {
     async () => {
       let tags, edges;
       try {
-        tags = runNebulaQuery(`USE ${ARCH_SPACE}; SHOW TAGS;`);
-        edges = runNebulaQuery(`USE ${ARCH_SPACE}; SHOW EDGES;`);
+        tags = await runNebulaQuery(`USE ${ARCH_SPACE}; SHOW TAGS;`);
+        edges = await runNebulaQuery(`USE ${ARCH_SPACE}; SHOW EDGES;`);
       } catch (err) {
         return {
           contents: [
@@ -104,8 +104,8 @@ export function registerAllResources(server) {
     async () => {
       let tags, edges;
       try {
-        tags = runNebulaQuery(`USE ${BUSINESS_SPACE}; SHOW TAGS;`);
-        edges = runNebulaQuery(`USE ${BUSINESS_SPACE}; SHOW EDGES;`);
+        tags = await runNebulaQuery(`USE ${BUSINESS_SPACE}; SHOW TAGS;`);
+        edges = await runNebulaQuery(`USE ${BUSINESS_SPACE}; SHOW EDGES;`);
       } catch (err) {
         return {
           contents: [

@@ -17,7 +17,7 @@ up: install
 	@if [ -f $(MCP_PID_FILE) ] && kill -0 "$$(cat $(MCP_PID_FILE))" 2>/dev/null; then \
 		echo "MCP server already running (PID $$(cat $(MCP_PID_FILE)))"; \
 	else \
-		node server.mjs > $(MCP_LOG_FILE) 2>&1 & \
+		node $$([ -f ../../.env ] && echo '--env-file=../../.env') server.mjs > $(MCP_LOG_FILE) 2>&1 & \
 		echo $$! > $(MCP_PID_FILE); \
 		pid=$$(cat $(MCP_PID_FILE)); \
 		sleep 2; \

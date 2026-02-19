@@ -24,7 +24,7 @@ export function register(server) {
     },
     async ({ query }) => {
       const finalQuery = `USE ${BUSINESS_SPACE};\n${query.trim()}`;
-      const output = runNebulaQuery(finalQuery);
+      const output = await runNebulaQuery(finalQuery);
       return { content: [{ type: 'text', text: output || '(no output)' }] };
     }
   );

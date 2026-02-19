@@ -52,7 +52,7 @@ export function buildInsertEdges(edgeType, edges, confidence) {
  * Create the business graph space and its schema (tags + edges) if they don't exist.
  * Retries are handled by the caller.
  */
-export function ensureBusinessSchema() {
+export async function ensureBusinessSchema() {
   const statements = [
     `CREATE SPACE IF NOT EXISTS ${BUSINESS_SPACE}(vid_type=FIXED_STRING(32), partition_num=1, replica_factor=1);`,
     `USE ${BUSINESS_SPACE};`,
@@ -64,5 +64,5 @@ export function ensureBusinessSchema() {
     'CREATE EDGE IF NOT EXISTS OWNS(rationale string, confidence string, created string, updated string);',
     'CREATE EDGE IF NOT EXISTS USES_ENTITY(rationale string, confidence string, created string, updated string);'
   ];
-  runNebulaQuery(statements.join('\n'));
+  await runNebulaQuery(statements.join('\n'));
 }

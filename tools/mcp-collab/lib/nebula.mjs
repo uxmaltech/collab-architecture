@@ -1,16 +1,93 @@
 // ---------------------------------------------------------------------------
-// NebulaGraph client — query execution via docker + nebula-console
+// NebulaGraph client — query execution via native nebula-nodejs client pool
 // ---------------------------------------------------------------------------
 
-import { spawnSync } from 'node:child_process';
+import { createClient } from '@nebula-contrib/nebula-nodejs';
 import {
-  NEBULA_CONSOLE_IMAGE,
-  NEBULA_NETWORK,
   NEBULA_ADDR,
   NEBULA_PORT,
   NEBULA_USER,
-  NEBULA_PASSWORD
+  NEBULA_PASSWORD,
+  ARCH_SPACE,
+  BUSINESS_SPACE
 } from '../config.mjs';
+
+// ---------------------------------------------------------------------------
+// Connection pools — one per graph space, created lazily on first use
+// ---------------------------------------------------------------------------
+
+const pools = new Map();
+
+function getClient(space) {
+  if (!pools.has(space)) {
+    const client = createClient({
+      servers: [`${NEBULA_ADDR}:${NEBULA_PORT}`],
+      userName: NEBULA_USER,
+      password: NEBULA_PASSWORD,
+      space,
+      poolSize: 3,
+      executeTimeout: 30_000,
+      pingInterval: 60_000
+    });
+    pools.set(space, client);
+  }
+  return pools.get(space);
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Detect which graph space a query targets by looking for a USE statement.
+ * Falls back to ARCH_SPACE if not found.
+ */
+function detectSpace(query) {
+  const match = query.match(/USE\s+(\w+)\s*;/i);
+  if (!match) return ARCH_SPACE;
+  return match[1].toLowerCase() === BUSINESS_SPACE.toLowerCase()
+    ? BUSINESS_SPACE
+    : ARCH_SPACE;
+}
+
+/**
+ * Convert the SDK's columnar result ({ data: { Col: [v1,v2], ... } })
+ * into a row-oriented array ([{ Col: v1 }, { Col: v2 }, ...]) that is
+ * easier for a language model to read and reason about.
+ * Returns an empty string for empty result sets (DDL, mutations, etc.).
+ */
+function formatResult(result) {
+  if (result == null) return '';
+  const data = result.data;
+  if (data == null) return '';
+  const cols = Object.keys(data);
+  if (cols.length === 0) return '';
+  const rowCount = data[cols[0]]?.length ?? 0;
+  if (rowCount === 0) return '';
+  const rows = [];
+  for (let i = 0; i < rowCount; i++) {
+    const row = {};
+    for (const col of cols) row[col] = data[col][i];
+    rows.push(row);
+  }
+  return JSON.stringify(rows, null, 2);
+}
+
+/**
+ * Execute a single nGQL statement against the given client.
+ * Throws if NebulaGraph returns a non-zero error_code.
+ */
+async function executeOne(client, statement) {
+  const result = await client.execute(statement.trim());
+  if (result?.error_code !== 0 && result?.error_code != null) {
+    throw new Error(result.error_msg || `NebulaGraph error_code ${result.error_code}`);
+  }
+  return formatResult(result);
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 /**
  * Escape a string value for safe inclusion in nGQL statements.
@@ -25,48 +102,33 @@ export function escapeNebula(value) {
 }
 
 /**
- * Strip nebula-console prompt lines and "Bye" messages from output.
+ * Execute one or more nGQL statements against NebulaGraph.
+ *
+ * Accepts:
+ *   - A single nGQL string (may include a "USE <space>;" prefix — it will be
+ *     used to route to the correct pool and then stripped before execution)
+ *   - Multiple statements separated by newlines (executed sequentially)
+ *   - An array of statement strings
+ *
+ * Returns the combined text output of all statements, or an empty string.
+ * Throws on connection errors or query failures.
  */
-export function cleanNebulaOutput(output) {
-  return output
-    .split('\n')
-    .filter((line) => !line.startsWith('(root@nebula)'))
-    .filter((line) => line.trim() !== 'Bye root!')
-    .join('\n')
-    .trim();
-}
+export async function runNebulaQuery(query) {
+  const raw = Array.isArray(query) ? query.join('\n') : query;
 
-/**
- * Execute an nGQL query via `docker run --rm nebula-console`.
- * Throws on timeout (30 s) or non-zero exit.
- */
-export function runNebulaQuery(query) {
-  const args = [
-    'run',
-    '--rm',
-    '--network',
-    NEBULA_NETWORK,
-    NEBULA_CONSOLE_IMAGE,
-    '-u',
-    NEBULA_USER,
-    '-p',
-    NEBULA_PASSWORD,
-    '-addr',
-    NEBULA_ADDR,
-    '-port',
-    NEBULA_PORT,
-    '-e',
-    query
-  ];
-  const result = spawnSync('docker', args, { encoding: 'utf8', timeout: 30_000 });
-  if (result.error) {
-    if (result.error.code === 'ETIMEDOUT') {
-      throw new Error('Nebula query timed out.');
-    }
-    throw new Error(result.error.message);
+  // Determine target space from USE statement, then strip all USE lines
+  const space = detectSpace(raw);
+  const client = getClient(space);
+
+  const statements = raw
+    .split('\n')
+    .map((s) => s.trim())
+    .filter((s) => s && !/^USE\s+\w+\s*;$/i.test(s));
+
+  const outputs = [];
+  for (const stmt of statements) {
+    const out = await executeOne(client, stmt);
+    if (out) outputs.push(out);
   }
-  if (result.status !== 0) {
-    throw new Error(result.stderr || result.stdout || `docker exited ${result.status}`);
-  }
-  return cleanNebulaOutput(result.stdout || '');
+  return outputs.join('\n\n');
 }
