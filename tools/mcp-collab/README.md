@@ -99,22 +99,26 @@ tools/mcp-collab/
 
 The server follows the SDK's per-session transport pattern:
 
-```
-Client                           Server
-  |                                |
-  |-- POST /mcp (initialize) ---->| Creates new Transport + McpServer
-  |                                | Stores in transports[sessionId]
-  |<-- 200 + mcp-session-id ------|
-  |                                |
-  |-- POST /mcp (tools/list) ---->| Looks up transport by session header
-  |   + mcp-session-id header      | Delegates to transport.handleRequest()
-  |<-- 200 + tool list ------------|
-  |                                |
-  |-- GET /mcp ------------------>| Opens SSE stream for server notifications
-  |<-- Server-Sent Events --------|
-  |                                |
-  |-- DELETE /mcp ---------------->| Closes transport, removes from map
-  |<-- 200 -----------------------|
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Server
+
+  C->>S: POST /mcp (initialize)
+  Note right of S: Create Transport + McpServer\\nStore in transports[sessionId]
+  S-->>C: 200 + mcp-session-id
+
+  C->>S: POST /mcp (tools/list) + mcp-session-id
+  Note right of S: Route by session header\\ntransport.handleRequest()
+  S-->>C: 200 + tool list
+
+  C->>S: GET /mcp
+  Note right of S: Open SSE stream
+  S-->>C: Server-Sent Events
+
+  C->>S: DELETE /mcp
+  Note right of S: Close transport\\nRemove from map
+  S-->>C: 200
 ```
 
 Each session gets its own `McpServer` instance with all tools, resources, and prompts registered. This ensures complete isolation between clients.
