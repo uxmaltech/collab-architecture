@@ -105,11 +105,11 @@ sequenceDiagram
   participant S as Server
 
   C->>S: POST /mcp (initialize)
-  Note right of S: Create Transport + McpServer\\nStore in transports[sessionId]
+  Note right of S: Create Transport + McpServer<br/>Store in transports[sessionId]
   S-->>C: 200 + mcp-session-id
 
   C->>S: POST /mcp (tools/list) + mcp-session-id
-  Note right of S: Route by session header\\ntransport.handleRequest()
+  Note right of S: Route by session header<br/>transport.handleRequest()
   S-->>C: 200 + tool list
 
   C->>S: GET /mcp
@@ -117,7 +117,7 @@ sequenceDiagram
   S-->>C: Server-Sent Events
 
   C->>S: DELETE /mcp
-  Note right of S: Close transport\\nRemove from map
+  Note right of S: Close transport<br/>Remove from map
   S-->>C: 200
 ```
 
