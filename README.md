@@ -36,6 +36,7 @@ The MCP server lives in `tools/mcp-collab/`. It exposes architecture and busines
 cp .env.example .env    # create local config (defaults work for dev)
 make tools-up           # start databases + MCP server (background)
 make tools-dev          # alternative: foreground with auto-reload
+make ingest-v2          # ingest V2 vector data into scoped Qdrant collections
 ```
 
 Endpoint: `http://127.0.0.1:7337/mcp`
@@ -65,3 +66,11 @@ MCP_API_KEYS=codex:my-secret-key,claude:another-key
 ```
 
 See [tools/mcp-collab/README.md](tools/mcp-collab/README.md) for full documentation on tools, resources, prompts, session lifecycle, and architecture.
+
+### V2 MCP defaults
+
+- V2 tools enabled by default:
+  - `context.scopes.list.v2`
+  - `context.vector.search.v2`
+  - `context.graph.degree.search.v2`
+- Legacy V1 tools are opt-in with `ENABLE_V1_TOOLS=true`.

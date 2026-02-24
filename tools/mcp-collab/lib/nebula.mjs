@@ -8,8 +8,7 @@ import {
   NEBULA_PORT,
   NEBULA_USER,
   NEBULA_PASSWORD,
-  ARCH_SPACE,
-  BUSINESS_SPACE
+  ARCH_SPACE
 } from '../config.mjs';
 
 // ---------------------------------------------------------------------------
@@ -45,9 +44,7 @@ function getClient(space) {
 function detectSpace(query) {
   const match = query.match(/USE\s+(\w+)\s*;/i);
   if (!match) return ARCH_SPACE;
-  return match[1].toLowerCase() === BUSINESS_SPACE.toLowerCase()
-    ? BUSINESS_SPACE
-    : ARCH_SPACE;
+  return match[1];
 }
 
 /**

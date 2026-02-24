@@ -59,6 +59,16 @@ export async function ensureCollection(collection) {
  */
 export async function qdrantSearch({ query, limit = 5, filter = null, collection }) {
   const vector = embedDeterministic(query, VECTOR_SIZE);
+  return qdrantSearchByVector({ vector, limit, filter, collection });
+}
+
+/**
+ * Semantic search in a Qdrant collection using a precomputed vector.
+ */
+export async function qdrantSearchByVector({ vector, limit = 5, filter = null, collection }) {
+  if (!Array.isArray(vector) || !vector.length) {
+    throw new Error('qdrantSearchByVector requires a non-empty vector array.');
+  }
   const body = {
     vector,
     limit: Math.min(Math.max(limit, 1), 50),

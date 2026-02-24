@@ -7,6 +7,15 @@ import {
   BUSINESS_SPACE,
   ARCH_COLLECTION,
   BUSINESS_COLLECTION,
+  NEBULA_SPACE_TECHNICAL,
+  NEBULA_SPACE_BUSINESS,
+  QDRANT_COLLECTION_TECH_UXMAL,
+  QDRANT_COLLECTION_TECH_ENVIAFLORES,
+  QDRANT_COLLECTION_BUSINESS,
+  EMBED_PROVIDER,
+  EMBED_DIM,
+  GEMINI_EMBED_MODEL,
+  INDEX_VERSION,
   QDRANT_URL,
   VECTOR_SIZE
 } from '../config.mjs';
@@ -37,14 +46,27 @@ export function registerAllResources(server) {
                 vectorSize: VECTOR_SIZE,
                 collections: {
                   architecture: ARCH_COLLECTION,
-                  business: BUSINESS_COLLECTION
+                  business: BUSINESS_COLLECTION,
+                  techUxmalV2: QDRANT_COLLECTION_TECH_UXMAL,
+                  techEnviafloresV2: QDRANT_COLLECTION_TECH_ENVIAFLORES,
+                  businessV2: QDRANT_COLLECTION_BUSINESS
                 }
               },
               nebula: {
                 spaces: {
                   architecture: ARCH_SPACE,
-                  business: BUSINESS_SPACE
+                  business: BUSINESS_SPACE,
+                  technicalV2: NEBULA_SPACE_TECHNICAL,
+                  businessV2: NEBULA_SPACE_BUSINESS
                 }
+              },
+              embeddings: {
+                provider: EMBED_PROVIDER,
+                model: GEMINI_EMBED_MODEL,
+                dim: EMBED_DIM
+              },
+              index: {
+                version: INDEX_VERSION
               }
             },
             null,
@@ -67,8 +89,8 @@ export function registerAllResources(server) {
     async () => {
       let tags, edges;
       try {
-        tags = await runNebulaQuery(`USE ${ARCH_SPACE}; SHOW TAGS;`);
-        edges = await runNebulaQuery(`USE ${ARCH_SPACE}; SHOW EDGES;`);
+        tags = await runNebulaQuery(`USE ${NEBULA_SPACE_TECHNICAL}; SHOW TAGS;`);
+        edges = await runNebulaQuery(`USE ${NEBULA_SPACE_TECHNICAL}; SHOW EDGES;`);
       } catch (err) {
         return {
           contents: [
@@ -104,8 +126,8 @@ export function registerAllResources(server) {
     async () => {
       let tags, edges;
       try {
-        tags = await runNebulaQuery(`USE ${BUSINESS_SPACE}; SHOW TAGS;`);
-        edges = await runNebulaQuery(`USE ${BUSINESS_SPACE}; SHOW EDGES;`);
+        tags = await runNebulaQuery(`USE ${NEBULA_SPACE_BUSINESS}; SHOW TAGS;`);
+        edges = await runNebulaQuery(`USE ${NEBULA_SPACE_BUSINESS}; SHOW EDGES;`);
       } catch (err) {
         return {
           contents: [

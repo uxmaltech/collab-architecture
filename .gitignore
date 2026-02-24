@@ -9,3 +9,5 @@ node_modules/
 # MCP runtime artifacts
 tools/mcp-collab/.pid
 tools/mcp-collab/mcp.log
+
+.claude

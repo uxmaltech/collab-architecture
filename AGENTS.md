@@ -23,6 +23,7 @@ Requires Docker and Python 3.
 - `make tools-up` starts databases plus the local MCP server for technical and business context tools.
 - `make tools-down` stops the MCP server started by `make tools-up`.
 - `make tools-config` writes MCP client config to `~/.codex/config.toml` (prompts before overwrite).
+- `make ingest-v2` ingests V2 vector data from `tools/mcp-collab/docs/*.md` into scoped Qdrant collections.
 - Example Codex config snippet lives at `tools/mcp-collab/codex-config.example.toml`.
 - `make logs-qdrant` / `make logs-nebula` stream container logs.
 
@@ -33,8 +34,15 @@ This repo has a deliberate separation between bootstrap and update flows. Avoid 
 - `graph/seed/seed.ngql` is a standalone, all-in-one script (schema + data) intended for manual full resets. It is not used by `make update`.
 
 ## MCP Contexts
-- Technical canon tools: `architecture.graph.query` and `architecture.vector.search` (aliases: `graph.query`, `vector.search`). Uses space `collab_architecture` and collection `collab-architecture-canon`.
-- Business context tools: `business.graph.query`, `business.vector.search`, and `business.rule` (ingests Markdown). Uses space `business_architecture` and collection `business-architecture-canon`.
+- V2 tools (default): `context.scopes.list.v2`, `context.vector.search.v2`, `context.graph.degree.search.v2`.
+- V2 Qdrant collections:
+  - `tech-uxmal`
+  - `tech-enviaflores`
+  - `business-rules`
+- V2 Nebula spaces:
+  - `technical_architecture`
+  - `business_architecture`
+- Legacy V1 tools: `architecture.*`, `business.*`, `business.rule` are available only with `ENABLE_V1_TOOLS=true`.
 
 ## Coding Style & Naming Conventions
 - Use `kebab-case` filenames with stable IDs, e.g., `knowledge/axioms/AX-001-authoritative-canon.md`.

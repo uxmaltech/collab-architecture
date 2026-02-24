@@ -7,7 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "[ -f ../../.env ] && node --env-file=../../.env server.mjs || node server.mjs",
-    "dev": "[ -f ../../.env ] && node --watch --env-file=../../.env server.mjs || node --watch server.mjs"
+    "dev": "[ -f ../../.env ] && node --watch --env-file=../../.env server.mjs || node --watch server.mjs",
+    "ingest:v2": "[ -f ../../.env ] && node --env-file=../../.env scripts/ingest-v2.mjs || node scripts/ingest-v2.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",

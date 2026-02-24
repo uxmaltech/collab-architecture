@@ -8,7 +8,7 @@ SHELL := /bin/sh
 MCP_PID_FILE ?= .pid
 MCP_LOG_FILE ?= mcp.log
 
-.PHONY: up down dev status install
+.PHONY: up down dev status install ingest-v2
 
 install:
 	@[ -d node_modules ] || npm install
@@ -59,4 +59,11 @@ status:
 		echo "MCP server running (PID $$(cat $(MCP_PID_FILE))) on http://$${MCP_HOST:-127.0.0.1}:$${MCP_PORT:-7337}/mcp"; \
 	else \
 		echo "MCP server not running"; \
+	fi
+
+ingest-v2: install
+	@if [ -n "$(BUSINESS_FILE)" ]; then \
+		npm run ingest:v2 -- --business-file "$(BUSINESS_FILE)"; \
+	else \
+		npm run ingest:v2; \
 	fi

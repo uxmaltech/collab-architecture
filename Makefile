@@ -41,7 +41,7 @@ MCP_HOST          ?= 127.0.0.1
 MCP_PORT          ?= 7337
 MCP_API_KEYS      ?=
 
-.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph reset reset-graph reset-embeddings tools-up tools-dev tools-down tools-status tools-config status logs-qdrant logs-nebula
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph reset reset-graph reset-embeddings tools-up tools-dev tools-down tools-status tools-config ingest-v2 status logs-qdrant logs-nebula
 
 status:
 	@echo "Qdrant container: $(QDRANT_CONTAINER)"
@@ -275,6 +275,11 @@ tools-status:
 
 tools-config:
 	@scripts/tools-config.sh
+
+ingest-v2:
+	@[ "$(EXTERNAL_SERVICES)" = "true" ] || $(MAKE) db-up
+	@$(MAKE) wait-qdrant
+	@$(MAKE) -C tools/mcp-collab ingest-v2 BUSINESS_FILE="$(BUSINESS_FILE)"
 
 db-up: qdrant-up nebula-up
 

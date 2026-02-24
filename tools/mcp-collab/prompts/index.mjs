@@ -24,7 +24,7 @@ export function registerAllPrompts(server) {
           role: 'user',
           content: {
             type: 'text',
-            text: `Use the architecture.graph.query tool to run:\nMATCH (n:Node) WHERE n.Node.node_type == "${nodeType}" RETURN n.Node.name AS name, n.Node.summary AS summary LIMIT 20`
+            text: `Use context.vector.search.v2 to explore "${nodeType}" in technical context:\ncontext=technical\nscope=global\nquery="${nodeType} architecture patterns rules"\nlimit=20`
           }
         }
       ]
@@ -47,7 +47,7 @@ export function registerAllPrompts(server) {
           role: 'user',
           content: {
             type: 'text',
-            text: `Search for business rules in the "${domain}" domain:\n1. Use business.vector.search with query "${domain} rules" to find relevant business rules.\n2. Then use business.graph.query to explore relationships:\n   MATCH (n:Node)-[e]->(m:Node) WHERE n.Node.node_type == "BusinessRule" AND m.Node.name == "${domain}" RETURN n.Node.name AS rule, type(e) AS relation, m.Node.name AS target LIMIT 20`
+            text: `Search for business rules in "${domain}":\n1. Use context.vector.search.v2 with context=business, scope=business, query="${domain} rules", limit=10.\n2. If the result payload includes graph node IDs, call context.graph.degree.search.v2 with context=business, hops=1 to inspect related nodes and relations.`
           }
         }
       ]
@@ -70,7 +70,7 @@ export function registerAllPrompts(server) {
           role: 'user',
           content: {
             type: 'text',
-            text: `Trace the dependency chain for "${nodeName}":\n1. Use architecture.graph.query to find direct dependencies:\n   MATCH (n:Node)-[e:DEPENDS_ON]->(m:Node) WHERE n.Node.name == "${nodeName}" RETURN n.Node.name AS source, m.Node.name AS dependency, e.rationale AS reason\n2. Then trace reverse dependencies (what depends on it):\n   MATCH (n:Node)-[e:DEPENDS_ON]->(m:Node) WHERE m.Node.name == "${nodeName}" RETURN n.Node.name AS dependent, m.Node.name AS dependency, e.rationale AS reason`
+            text: `Trace dependency chain for "${nodeName}":\n1. Use context.vector.search.v2 with context=technical, scope=global, query="${nodeName}", limit=5 to find candidate seed IDs.\n2. For each candidate seed_id, call context.graph.degree.search.v2 with context=technical, direction=both, hops=2, edge_types=[\"DEPENDS_ON\"].`
           }
         }
       ]

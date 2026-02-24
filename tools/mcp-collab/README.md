@@ -72,6 +72,8 @@ tools/mcp-collab/
     token-verifier.mjs    # Bearer token verification via API keys
   lib/
     hashing.mjs           # Deterministic embeddings, UUID hashing
+    context-router.mjs    # V2 context/scope routing
+    embeddings/           # V2 embedding drivers (gemini/deterministic)
     nebula.mjs            # NebulaGraph client (docker + nebula-console)
     qdrant.mjs            # Qdrant vector DB client
     text.mjs              # Text chunking and tokenization
@@ -79,6 +81,9 @@ tools/mcp-collab/
     graph-builder.mjs     # nGQL INSERT statement builders
   tools/
     index.mjs             # Tool registration orchestrator
+    context-scopes-list-v2.mjs
+    context-vector-search-v2.mjs
+    context-graph-degree-search-v2.mjs
     architecture-graph-query.mjs
     architecture-vector-search.mjs
     business-graph-query.mjs
@@ -116,14 +121,19 @@ Each session gets its own `McpServer` instance with all tools, resources, and pr
 
 ## Tools
 
-**Technical canon:**
-- `architecture.graph.query` (alias: `graph.query`) — execute nGQL on the architecture graph
-- `architecture.vector.search` (alias: `vector.search`) — semantic search on technical docs
+**V2 context tools (enabled by default):**
+- `context.scopes.list.v2` — list valid contexts/scopes and target stores
+- `context.vector.search.v2` — semantic search by `context` + `scope`
+- `context.graph.degree.search.v2` — N-hop traversal by seed node
 
-**Business context:**
-- `business.graph.query` — execute nGQL on the business graph
-- `business.vector.search` — semantic search on business context
-- `business.rule` — ingest Markdown into business graph + vector store
+**Legacy V1 tools (disabled by default):**
+- `architecture.graph.query` (alias: `graph.query`)
+- `architecture.vector.search` (alias: `vector.search`)
+- `business.graph.query`
+- `business.vector.search`
+- `business.rule`
+
+Set `ENABLE_V1_TOOLS=true` to re-enable V1 tool registration.
 
 ## Resources
 
@@ -162,6 +172,7 @@ Or directly via npm (assumes databases are already running):
 ```bash
 npm start          # background-friendly, loads ../../.env if present
 npm run dev        # foreground with --watch, loads ../../.env if present
+npm run ingest:v2  # ingest V2 sources from docs/*.md into scoped Qdrant collections
 ```
 
 Default endpoint: `http://127.0.0.1:7337/mcp`
@@ -206,13 +217,26 @@ The implementation uses a custom `simpleBearerAuth` middleware instead of the SD
 | `MCP_ENV` | *(none)* | `local` = allow no auth. Any other value or unset = require `MCP_API_KEYS` |
 | `MCP_HOST` | `127.0.0.1` | Bind address |
 | `MCP_PORT` | `7337` | Listen port |
+| `ENABLE_V1_TOOLS` | `false` | Enables legacy V1 tools (`architecture.*`, `business.*`, `business.rule`). |
+| `INDEX_VERSION` | `v2` | Version label stored in V2 payloads/responses. |
 | `MCP_API_KEYS` | *(empty)* | API keys for auth (`clientId:key,...`). Empty + `MCP_ENV=local` = no auth |
 | `ARCH_SPACE` | `collab_architecture` | NebulaGraph space for technical architecture |
 | `BUSINESS_SPACE` | `business_architecture` | NebulaGraph space for business context |
 | `ARCH_COLLECTION` | `collab-architecture-canon` | Qdrant collection for technical docs |
 | `BUSINESS_COLLECTION` | `business-architecture-canon` | Qdrant collection for business context |
+| `NEBULA_SPACE_TECHNICAL` | `technical_architecture` | V2 technical graph space (single space for cross-repo impact). |
+| `NEBULA_SPACE_BUSINESS` | `business_architecture` | V2 business graph space. |
+| `QDRANT_COLLECTION_TECH_UXMAL` | `tech-uxmal` | V2 technical collection for Uxmal scopes. |
+| `QDRANT_COLLECTION_TECH_ENVIAFLORES` | `tech-enviaflores` | V2 technical collection for EnviaFlores scopes. |
+| `QDRANT_COLLECTION_BUSINESS` | `business-rules` | V2 business-rules collection. |
 | `QDRANT_URL` | `http://localhost:6333` | Qdrant HTTP endpoint |
 | `QDRANT_VECTOR_SIZE` | `1536` | Embedding vector dimension |
+| `EMBED_PROVIDER` | `gemini` (`deterministic` in local) | V2 embedding provider (`gemini` \| `deterministic`). |
+| `EMBED_DIM` | `1536` | Embedding vector dimension for V2 drivers/collections. |
+| `GEMINI_API_KEY` | *(empty)* | Required when `EMBED_PROVIDER=gemini`. |
+| `GEMINI_EMBED_MODEL` | `gemini-embedding-001` | Gemini embedding model name. |
+| `GEMINI_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta` | Gemini API base URL. |
+| `GEMINI_MAX_BATCH` | `32` | Max texts per Gemini batch call. |
 | `NEBULA_CONSOLE_IMAGE` | `vesoft/nebula-console:v3.6.0` | Docker image for nebula-console |
 | `NEBULA_NETWORK` | `collab-architecture_default` | Docker network for NebulaGraph |
 | `NEBULA_ADDR` | `graphd` | NebulaGraph graph service address |
@@ -220,19 +244,22 @@ The implementation uses a custom `simpleBearerAuth` middleware instead of the SD
 | `NEBULA_USER` | `root` | NebulaGraph username |
 | `NEBULA_PASSWORD` | `nebula` | NebulaGraph password |
 
-## Example: business.rule
+## Example: context.vector.search.v2
 
 ```json
 {
-  "repo": "uxmaltech/backoffice-ui",
-  "domain": "backoffice-ui",
-  "markdown": "# Domain\n- Backoffice UI\n\n# Capabilities\n- Order Management\n\n# Commands\n- CreateOrder\n- CancelOrder\n\n# Queries\n- ListOrders\n\n# Entities\n- Order\n\n# Rules\n- Orders must be auditable.\n",
-  "tags": ["orders", "backoffice"],
-  "confidence": "provisional"
+  "context": "technical",
+  "scope": "global",
+  "query": "strict cqrs separation",
+  "limit": 6
 }
 ```
 
-The tool will:
-1. Parse the markdown into structured concepts (domains, capabilities, commands, queries, entities, rules)
-2. Create graph nodes and edges in the `business_architecture` NebulaGraph space
-3. Chunk the text and upsert deterministic embeddings into the `business-architecture-canon` Qdrant collection
+This returns:
+1. Matched chunks across V2 scoped collections
+2. Collection provenance per match (`tech-uxmal` / `tech-enviaflores` / `business-rules`)
+3. Embedding metadata (`provider`, `model`, `dim`) and `index_version`
+
+## Legacy note: `business.rule`
+
+`business.rule` remains available only when `ENABLE_V1_TOOLS=true`. It belongs to the legacy V1 toolset and is not part of the default V2 workflow.
