@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.2] — 2026-02-24
+
+Incremental GitHub ingestion for V2 collections, with per-repo counting, estimated embedding cost, and repository progress rendering.
+
+### Added
+
+- **`scripts/ingest-github.mjs`** — new CLI ingestion command with `full` and `delta` modes.
+- **`lib/git-repo-client.mjs`** — temporary clone and local git inspection helpers (default branch resolution, commit availability, tree listing, diff, blob SHA/path reads).
+- **`lib/ingest-github.mjs`** — ingestion orchestrator with pre-scan metrics, scoped collection routing, delete-then-upsert behavior, and per-repo summary output.
+- **`make ingest-github` / `make update-github`** — root-level entrypoints to run full or delta ingestion from the repository root.
+- **Debug reporting for non-indexed files** — optional `--debug-not-indexed` (`DEBUG_NOT_INDEXED=true` in make) includes excluded/skipped file paths and reasons in output JSON.
+
+### Changed
+
+- **`lib/qdrant.mjs`** — added `qdrantDeleteByFilter` and `qdrantScroll`; `ensureCollection` now supports explicit vector size for specialized collections.
+- **`config.mjs`** — added `GITHUB_TOKEN`, `QDRANT_COLLECTION_INGEST_CURSORS`, and optional `EMBED_PRICE_PER_1M_TOKENS` validation.
+- **`tools/mcp-collab/package.json`** — added `ingest:github` script and aligned env-file loading to preserve CLI argument forwarding.
+- **`scripts/ingest-github.mjs`** — non-dry runs now always execute preflight summary + confirmation before writes; can be bypassed with `--skip-embed-confirm` for automation.
+
+### Documentation
+
+- Updated `README.md`, `tools/mcp-collab/README.md`, `.env.example`, `AGENTS.md`, and `tools/mcp-collab/CLAUDE.md` with GitHub ingestion commands, env vars, and operational guidance.
+
 ## [0.3.1] — 2026-02-19
 
 Fixes for seeding and MCP connectivity against an external NebulaGraph cluster (Coolify/Tailscale). All changes are backwards-compatible with the local Docker stack (`EXTERNAL_SERVICES=false`).

@@ -13,6 +13,21 @@ export const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 export const GEMINI_EMBED_MODEL = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
 export const GEMINI_BASE_URL = (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/$/, '');
 export const GEMINI_MAX_BATCH = parseInt(process.env.GEMINI_MAX_BATCH || '32', 10);
+export const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
+export const QDRANT_COLLECTION_INGEST_CURSORS = process.env.QDRANT_COLLECTION_INGEST_CURSORS || 'ingest-cursors';
+
+const rawEmbeddingPrice = process.env.EMBED_PRICE_PER_1M_TOKENS;
+export const EMBED_PRICE_PER_1M_TOKENS = rawEmbeddingPrice == null || rawEmbeddingPrice === ''
+  ? null
+  : parseFloat(rawEmbeddingPrice);
+
+if (EMBED_PRICE_PER_1M_TOKENS != null && (!Number.isFinite(EMBED_PRICE_PER_1M_TOKENS) || EMBED_PRICE_PER_1M_TOKENS < 0)) {
+  console.error(
+    `FATAL: Invalid EMBED_PRICE_PER_1M_TOKENS "${rawEmbeddingPrice}". ` +
+      'Use a non-negative decimal value (example: 0.13).'
+  );
+  process.exit(1);
+}
 
 if (!['gemini', 'deterministic'].includes(EMBED_PROVIDER)) {
   console.error(

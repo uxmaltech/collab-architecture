@@ -24,6 +24,8 @@ Requires Docker and Python 3.
 - `make tools-down` stops the MCP server started by `make tools-up`.
 - `make tools-config` writes MCP client config to `~/.codex/config.toml` (prompts before overwrite).
 - `make ingest-v2` ingests V2 vector data from `tools/mcp-collab/docs/*.md` into scoped Qdrant collections.
+- `make ingest-github` ingests GitHub repository content into a scoped V2 collection (`MODE=full|delta`).
+- `make update-github` convenience alias for incremental GitHub ingestion (`MODE=delta`).
 - Example Codex config snippet lives at `tools/mcp-collab/codex-config.example.toml`.
 - `make logs-qdrant` / `make logs-nebula` stream container logs.
 
@@ -43,6 +45,15 @@ This repo has a deliberate separation between bootstrap and update flows. Avoid 
   - `technical_architecture`
   - `business_architecture`
 - Legacy V1 tools: `architecture.*`, `business.*`, `business.rule` are available only with `ENABLE_V1_TOOLS=true`.
+
+## GitHub Ingestion Notes
+- `ingest-github` requires `GITHUB_TOKEN` in `.env`.
+- GitHub ingestion uses temporary local clones and git diff/tree reads (no GitHub compare/tree/blob API path).
+- Optional cost reporting uses `EMBED_PRICE_PER_1M_TOKENS` (USD estimate).
+- Incremental cursors are stored in `QDRANT_COLLECTION_INGEST_CURSORS` (default: `ingest-cursors`).
+- Ingestion writes require explicit non-global scopes (`uxmal`, `enviaflores`, or `business`).
+- Non-dry runs require preflight confirmation by default; use `SKIP_EMBED_CONFIRM=true` (or `--skip-embed-confirm`) only for non-interactive automation.
+- Set `DEBUG_NOT_INDEXED=true` (or `--debug-not-indexed`) to include excluded/skipped file path details in the JSON report.
 
 ## Coding Style & Naming Conventions
 - Use `kebab-case` filenames with stable IDs, e.g., `knowledge/axioms/AX-001-authoritative-canon.md`.

@@ -173,6 +173,7 @@ Or directly via npm (assumes databases are already running):
 npm start          # background-friendly, loads ../../.env if present
 npm run dev        # foreground with --watch, loads ../../.env if present
 npm run ingest:v2  # ingest V2 sources from docs/*.md into scoped Qdrant collections
+npm run ingest:github -- --repo uxmaltech/core --context technical --scope uxmal --mode full
 ```
 
 Default endpoint: `http://127.0.0.1:7337/mcp`
@@ -229,14 +230,17 @@ The implementation uses a custom `simpleBearerAuth` middleware instead of the SD
 | `QDRANT_COLLECTION_TECH_UXMAL` | `tech-uxmal` | V2 technical collection for Uxmal scopes. |
 | `QDRANT_COLLECTION_TECH_ENVIAFLORES` | `tech-enviaflores` | V2 technical collection for EnviaFlores scopes. |
 | `QDRANT_COLLECTION_BUSINESS` | `business-rules` | V2 business-rules collection. |
+| `QDRANT_COLLECTION_INGEST_CURSORS` | `ingest-cursors` | Qdrant collection used to persist GitHub incremental cursors (`last_processed_sha`). |
 | `QDRANT_URL` | `http://localhost:6333` | Qdrant HTTP endpoint |
 | `QDRANT_VECTOR_SIZE` | `1536` | Embedding vector dimension |
 | `EMBED_PROVIDER` | `gemini` (`deterministic` in local) | V2 embedding provider (`gemini` \| `deterministic`). |
 | `EMBED_DIM` | `1536` | Embedding vector dimension for V2 drivers/collections. |
+| `EMBED_PRICE_PER_1M_TOKENS` | *(empty)* | Optional USD estimate for embedding cost in GitHub ingestion reports. |
 | `GEMINI_API_KEY` | *(empty)* | Required when `EMBED_PROVIDER=gemini`. |
 | `GEMINI_EMBED_MODEL` | `gemini-embedding-001` | Gemini embedding model name. |
 | `GEMINI_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta` | Gemini API base URL. |
 | `GEMINI_MAX_BATCH` | `32` | Max texts per Gemini batch call. |
+| `GITHUB_TOKEN` | *(empty)* | Required for `ingest:github` (temporary clone + local git diff and file reads). |
 | `NEBULA_CONSOLE_IMAGE` | `vesoft/nebula-console:v3.6.0` | Docker image for nebula-console |
 | `NEBULA_NETWORK` | `collab-architecture_default` | Docker network for NebulaGraph |
 | `NEBULA_ADDR` | `graphd` | NebulaGraph graph service address |
@@ -259,6 +263,58 @@ This returns:
 1. Matched chunks across V2 scoped collections
 2. Collection provenance per match (`tech-uxmal` / `tech-enviaflores` / `business-rules`)
 3. Embedding metadata (`provider`, `model`, `dim`) and `index_version`
+
+## GitHub incremental ingestion (CLI)
+
+`ingest:github` ingests repository content into V2 scoped collections using `full` and `delta` modes.
+By default (when not using `--dry-run`), it always runs a preflight summary and asks for confirmation before writing embeddings.
+Use `--skip-embed-confirm` to bypass that prompt (for CI/non-interactive runs).
+
+Examples:
+
+```bash
+# Full bootstrap for one repo
+npm run ingest:github -- \
+  --repo uxmaltech/core \
+  --context technical \
+  --scope uxmal \
+  --mode full
+
+# Delta update for multiple repos (repeated --repo)
+npm run ingest:github -- \
+  --repo uxmaltech/core \
+  --repo uxmaltech/auth \
+  --context technical \
+  --scope uxmal \
+  --mode delta
+
+# Dry-run with custom extensions and no progress rendering
+npm run ingest:github -- \
+  --repo enviaflores/ef-storefront-backend \
+  --context technical \
+  --scope enviaflores \
+  --mode delta \
+  --include-ext md,ts,js,php \
+  --dry-run \
+  --no-progress
+
+# Include debug payload for files that were not indexed
+npm run ingest:github -- \
+  --repo uxmaltech/core \
+  --context technical \
+  --scope uxmal \
+  --mode delta \
+  --debug-not-indexed
+```
+
+Root Make targets are also available:
+
+```bash
+make ingest-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal MODE=full
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal SKIP_EMBED_CONFIRM=true
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal DEBUG_NOT_INDEXED=true
+```
 
 ## Legacy note: `business.rule`
 

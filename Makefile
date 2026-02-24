@@ -41,7 +41,7 @@ MCP_HOST          ?= 127.0.0.1
 MCP_PORT          ?= 7337
 MCP_API_KEYS      ?=
 
-.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph reset reset-graph reset-embeddings tools-up tools-dev tools-down tools-status tools-config ingest-v2 status logs-qdrant logs-nebula
+.PHONY: db-up db-down qdrant-up qdrant-down nebula-up nebula-down wait-qdrant wait-nebula nebula-add-hosts seed update seed-embeddings seed-graph update-graph reset reset-graph reset-embeddings tools-up tools-dev tools-down tools-status tools-config ingest-v2 ingest-github update-github status logs-qdrant logs-nebula
 
 status:
 	@echo "Qdrant container: $(QDRANT_CONTAINER)"
@@ -280,6 +280,36 @@ ingest-v2:
 	@[ "$(EXTERNAL_SERVICES)" = "true" ] || $(MAKE) db-up
 	@$(MAKE) wait-qdrant
 	@$(MAKE) -C tools/mcp-collab ingest-v2 BUSINESS_FILE="$(BUSINESS_FILE)"
+
+ingest-github:
+	@[ "$(EXTERNAL_SERVICES)" = "true" ] || $(MAKE) db-up
+	@$(MAKE) wait-qdrant
+	@$(MAKE) -C tools/mcp-collab ingest-github \
+		REPOS="$(REPOS)" \
+		CONTEXT="$(CONTEXT)" \
+		SCOPE="$(SCOPE)" \
+		MODE="$(MODE)" \
+		BRANCH="$(BRANCH)" \
+		INCLUDE_EXT="$(INCLUDE_EXT)" \
+		FROM_SHA="$(FROM_SHA)" \
+		DRY_RUN="$(DRY_RUN)" \
+		DEBUG_NOT_INDEXED="$(DEBUG_NOT_INDEXED)" \
+		SKIP_EMBED_CONFIRM="$(SKIP_EMBED_CONFIRM)" \
+		NO_PROGRESS="$(NO_PROGRESS)"
+
+update-github:
+	@$(MAKE) ingest-github \
+		REPOS="$(REPOS)" \
+		CONTEXT="$(CONTEXT)" \
+		SCOPE="$(SCOPE)" \
+		MODE=delta \
+		BRANCH="$(BRANCH)" \
+		INCLUDE_EXT="$(INCLUDE_EXT)" \
+		FROM_SHA="$(FROM_SHA)" \
+		DRY_RUN="$(DRY_RUN)" \
+		DEBUG_NOT_INDEXED="$(DEBUG_NOT_INDEXED)" \
+		SKIP_EMBED_CONFIRM="$(SKIP_EMBED_CONFIRM)" \
+		NO_PROGRESS="$(NO_PROGRESS)"
 
 db-up: qdrant-up nebula-up
 

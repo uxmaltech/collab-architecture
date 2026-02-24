@@ -19,17 +19,17 @@ function qdrantHeaders(extra = {}) {
  * Ensure a Qdrant collection exists with the expected vector size.
  * Creates the collection if missing; throws if size mismatches.
  */
-export async function ensureCollection(collection) {
+export async function ensureCollection(collection, { vectorSize = VECTOR_SIZE, distance = 'Cosine' } = {}) {
   const res = await fetch(`${QDRANT_URL}/collections/${collection}`, {
     headers: qdrantHeaders()
   });
   if (res.status === 200) {
     const json = await res.json();
     const size = json?.result?.config?.params?.vectors?.size;
-    if (size && parseInt(size, 10) !== VECTOR_SIZE) {
+    if (size && parseInt(size, 10) !== vectorSize) {
       throw new Error(
-        `Collection ${collection} has vector size ${size}, expected ${VECTOR_SIZE}. ` +
-          'Update QDRANT_VECTOR_SIZE or recreate the collection.'
+        `Collection ${collection} has vector size ${size}, expected ${vectorSize}. ` +
+          'Update vector size configuration or recreate the collection.'
       );
     }
     return;
@@ -43,8 +43,8 @@ export async function ensureCollection(collection) {
     headers: qdrantHeaders(),
     body: JSON.stringify({
       vectors: {
-        size: VECTOR_SIZE,
-        distance: 'Cosine'
+        size: vectorSize,
+        distance
       }
     })
   });
@@ -106,4 +106,45 @@ export async function qdrantUpsert({ points, collection }) {
     throw new Error(`Qdrant error: ${res.status} ${msg}`);
   }
   return json;
+}
+
+/**
+ * Delete points from a collection by filter.
+ */
+export async function qdrantDeleteByFilter({ collection, filter }) {
+  const res = await fetch(`${QDRANT_URL}/collections/${collection}/points/delete?wait=true`, {
+    method: 'POST',
+    headers: qdrantHeaders(),
+    body: JSON.stringify({ filter })
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    const msg = json?.status?.error || JSON.stringify(json);
+    throw new Error(`Qdrant error: ${res.status} ${msg}`);
+  }
+  return json;
+}
+
+/**
+ * Scroll points from a collection using an optional filter.
+ */
+export async function qdrantScroll({ collection, filter = null, limit = 10, withPayload = true, withVectors = false }) {
+  const body = {
+    limit: Math.min(Math.max(limit, 1), 100),
+    with_payload: withPayload,
+    with_vector: withVectors
+  };
+  if (filter) body.filter = filter;
+
+  const res = await fetch(`${QDRANT_URL}/collections/${collection}/points/scroll`, {
+    method: 'POST',
+    headers: qdrantHeaders(),
+    body: JSON.stringify(body)
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    const msg = json?.status?.error || JSON.stringify(json);
+    throw new Error(`Qdrant error: ${res.status} ${msg}`);
+  }
+  return json?.result?.points || [];
 }

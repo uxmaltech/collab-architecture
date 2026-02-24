@@ -8,7 +8,7 @@ SHELL := /bin/sh
 MCP_PID_FILE ?= .pid
 MCP_LOG_FILE ?= mcp.log
 
-.PHONY: up down dev status install ingest-v2
+.PHONY: up down dev status install ingest-v2 ingest-github
 
 install:
 	@[ -d node_modules ] || npm install
@@ -67,3 +67,35 @@ ingest-v2: install
 	else \
 		npm run ingest:v2; \
 	fi
+
+ingest-github: install
+	@if [ -z "$(REPOS)" ]; then \
+		echo "REPOS is required (comma-separated owner/name list)."; \
+		exit 1; \
+	fi
+	@if [ -z "$(CONTEXT)" ]; then \
+		echo "CONTEXT is required (technical|business)."; \
+		exit 1; \
+	fi
+	@if [ -z "$(SCOPE)" ]; then \
+		echo "SCOPE is required (uxmal|enviaflores|business)."; \
+		exit 1; \
+	fi
+	@if [ -z "$(MODE)" ]; then \
+		echo "MODE is required (full|delta)."; \
+		exit 1; \
+	fi
+	@cmd="npm run ingest:github --"; \
+	for repo in $$(echo "$(REPOS)" | tr ',' ' '); do \
+		cmd="$$cmd --repo $$repo"; \
+	done; \
+	cmd="$$cmd --context $(CONTEXT) --scope $(SCOPE) --mode $(MODE)"; \
+	if [ -n "$(BRANCH)" ]; then cmd="$$cmd --branch $(BRANCH)"; fi; \
+	if [ -n "$(INCLUDE_EXT)" ]; then cmd="$$cmd --include-ext $(INCLUDE_EXT)"; fi; \
+	if [ -n "$(FROM_SHA)" ]; then cmd="$$cmd --from-sha $(FROM_SHA)"; fi; \
+	if [ "$(DRY_RUN)" = "true" ]; then cmd="$$cmd --dry-run"; fi; \
+	if [ "$(DEBUG_NOT_INDEXED)" = "true" ]; then cmd="$$cmd --debug-not-indexed"; fi; \
+	if [ "$(SKIP_EMBED_CONFIRM)" = "true" ]; then cmd="$$cmd --skip-embed-confirm"; fi; \
+	if [ "$(NO_PROGRESS)" = "true" ]; then cmd="$$cmd --no-progress"; fi; \
+	echo "$$cmd"; \
+	eval "$$cmd"

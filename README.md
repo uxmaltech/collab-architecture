@@ -37,6 +37,12 @@ cp .env.example .env    # create local config (defaults work for dev)
 make tools-up           # start databases + MCP server (background)
 make tools-dev          # alternative: foreground with auto-reload
 make ingest-v2          # ingest V2 vector data into scoped Qdrant collections
+make ingest-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal MODE=full
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal
+# Use SKIP_EMBED_CONFIRM=true only for non-interactive automation
+# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal SKIP_EMBED_CONFIRM=true
+# Add DEBUG_NOT_INDEXED=true to include excluded/skipped file paths in output JSON
+# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal DEBUG_NOT_INDEXED=true
 ```
 
 Endpoint: `http://127.0.0.1:7337/mcp`
@@ -53,6 +59,9 @@ Key variables:
 | `MCP_API_KEYS` | Production | API keys in format `clientId1:key1,clientId2:key2`. When set, all `/mcp` endpoints require `Authorization: Bearer <key>`. |
 | `MCP_HOST` | No | Bind address (default: `127.0.0.1`) |
 | `MCP_PORT` | No | Listen port (default: `7337`) |
+| `GITHUB_TOKEN` | For `ingest:github` | Token with read access to target repos for temporary clone and local git diff ingestion. |
+| `EMBED_PRICE_PER_1M_TOKENS` | No | Optional USD estimator for embedding cost reports in GitHub ingestion runs. |
+| `QDRANT_COLLECTION_INGEST_CURSORS` | No | Qdrant collection used to persist incremental GitHub ingestion cursors. |
 
 **Safety rule:** the server refuses to start if both `MCP_API_KEYS` is empty and `MCP_ENV` is not `local`. This prevents accidental unauthenticated deployments.
 
