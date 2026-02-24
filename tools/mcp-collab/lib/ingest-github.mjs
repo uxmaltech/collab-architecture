@@ -20,8 +20,15 @@ import {
   readRepoFile
 } from './git-repo-client.mjs';
 import { ensureCollection, qdrantDeleteByFilter, qdrantScroll, qdrantUpsert } from './qdrant.mjs';
-import { chunkText, estimateTokens } from './text.mjs';
+import { chunkTextWithRanges, estimateTokens } from './text.mjs';
 import { resolveContextScope, resolveVectorCollections } from './context-router.mjs';
+import {
+  classifyContentKind,
+  detectLanguage,
+  extractSymbols,
+  resolveEmbeddingProfile,
+  selectChunkSymbol
+} from './code-metadata/index.mjs';
 
 const CURSOR_VECTOR = [0];
 const ALLOWED_MODES = new Set(['full', 'delta']);
@@ -41,6 +48,7 @@ export const DEFAULT_INCLUDE_EXTENSIONS = [
   'jsx',
   'mjs',
   'cjs',
+  'scss',
   'php',
   'py',
   'go',
@@ -187,20 +195,9 @@ function buildBaseRepoDetail({ repo, context, scope, mode }) {
     status: 'failed',
     error: null,
     warnings: [],
-    not_indexed_debug: null,
     context,
     scope
   };
-}
-
-function pushNotIndexedDebug(detail, pathValue, reason) {
-  if (!detail?.not_indexed_debug) return;
-  const path = String(pathValue || '').trim();
-  if (!path) return;
-  detail.not_indexed_debug.skipped_processing.push({
-    path,
-    reason
-  });
 }
 
 function estimateCost(tokens) {
@@ -208,7 +205,7 @@ function estimateCost(tokens) {
   return roundCost((tokens / 1_000_000) * EMBED_PRICE_PER_1M_TOKENS);
 }
 
-async function listFullUnits(snapshot, extensionSet, debugNotIndexed = false) {
+async function listFullUnits(snapshot, extensionSet, debugMode = null) {
   const blobs = await listTreeBlobs(snapshot, 'HEAD');
 
   const units = [];
@@ -216,7 +213,7 @@ async function listFullUnits(snapshot, extensionSet, debugNotIndexed = false) {
 
   for (const item of blobs) {
     if (!isPathAllowed(item.path, extensionSet)) {
-      if (debugNotIndexed) {
+      if (debugMode === 'excluded') {
         excludedByExtension.push({
           path: item.path,
           reason: 'extension_not_allowed'
@@ -240,7 +237,7 @@ async function listFullUnits(snapshot, extensionSet, debugNotIndexed = false) {
   };
 }
 
-async function listDeltaUnits(snapshot, baseSha, headSha, extensionSet, debugNotIndexed = false) {
+async function listDeltaUnits(snapshot, baseSha, headSha, extensionSet, debugMode = null) {
   const files = await listDeltaChanges(snapshot, baseSha, headSha);
   const units = [];
   const excludedByExtension = [];
@@ -254,7 +251,7 @@ async function listDeltaUnits(snapshot, baseSha, headSha, extensionSet, debugNot
     const isIndexable = matchesCurrent || matchesPrevious;
 
     if (!isIndexable) {
-      if (debugNotIndexed) {
+      if (debugMode === 'excluded') {
         excludedByExtension.push({
           path,
           reason: 'extension_not_allowed'
@@ -298,7 +295,7 @@ async function listDeltaUnits(snapshot, baseSha, headSha, extensionSet, debugNot
       continue;
     }
 
-    if (debugNotIndexed) {
+    if (debugMode === 'excluded') {
       excludedByExtension.push({
         path,
         reason: `status_not_supported:${status || 'unknown'}`
@@ -351,7 +348,7 @@ async function processUpsertUnit({
     };
   }
 
-  const chunks = chunkText(sourceText);
+  const chunks = chunkTextWithRanges(sourceText);
   if (!chunks.length) {
     return {
       ingested: false,
@@ -363,7 +360,21 @@ async function processUpsertUnit({
     };
   }
 
-  const estimatedTokens = chunks.reduce((total, chunk) => total + estimateTokens(chunk), 0);
+  const language = detectLanguage(sourcePath);
+  const symbolResult = extractSymbols({
+    language,
+    sourceText,
+    sourcePath
+  });
+  const symbols = symbolResult.symbols || [];
+  const contentKind = classifyContentKind({
+    sourcePath,
+    language,
+    symbols
+  });
+  const embeddingProfile = resolveEmbeddingProfile(context);
+
+  const estimatedTokens = chunks.reduce((total, chunk) => total + estimateTokens(chunk.text), 0);
   const owner = parseRepoOwner(repo);
 
   if (dryRun) {
@@ -373,7 +384,7 @@ async function processUpsertUnit({
       deleted: 1,
       pointsUpserted: chunks.length,
       estimatedTokens,
-      warning: null
+      warning: symbolResult.warning || null
     };
   }
 
@@ -382,10 +393,17 @@ async function processUpsertUnit({
     filter: fileFilter({ repo, branch, context, scope, sourcePath })
   });
 
-  const vectors = await driver.embedMany(chunks);
+  const vectors = await driver.embedMany(chunks.map((chunk) => chunk.text));
+  const now = nowIso();
   const points = chunks.map((chunk, index) => {
     const chunkId = hashChunkId(`${repo}:${branch}:${sourcePath}:${index}:${blobSha}`);
     const seed = `V2:github:${context}:${scope}:${repo}:${branch}:${sourcePath}:${index}:${blobSha}:${INDEX_VERSION}`;
+    const chunkSymbol = selectChunkSymbol({
+      symbols,
+      chunkStartLine: chunk.startLine,
+      chunkEndLine: chunk.endLine
+    });
+
     return {
       id: normalizePointId(seed),
       vector: vectors[index],
@@ -401,13 +419,21 @@ async function processUpsertUnit({
         commit_sha: headSha,
         chunk_id: chunkId,
         chunk_index: index,
-        text: chunk,
+        text: chunk.text,
+        chunk_start_line: chunk.startLine,
+        chunk_end_line: chunk.endLine,
+        language,
+        content_kind: contentKind,
+        embedding_profile: embeddingProfile,
+        symbol_name: chunkSymbol?.name || null,
+        symbol_path: chunkSymbol?.path || null,
+        symbol_parser: symbolResult.parser || null,
         index_version: INDEX_VERSION,
         embedding_provider: driver.meta().provider,
         embedding_model: driver.meta().model,
         embedding_dim: driver.meta().dim,
-        updated: nowIso(),
-        created: nowIso()
+        updated: now,
+        created: now
       }
     };
   });
@@ -420,7 +446,7 @@ async function processUpsertUnit({
     deleted: 1,
     pointsUpserted: points.length,
     estimatedTokens,
-    warning: null
+    warning: symbolResult.warning || null
   };
 }
 
@@ -461,15 +487,9 @@ async function processRepo({
   onRepoProgress,
   collection,
   driver,
-  debugNotIndexed = false
+  debug = null
 }) {
   const detail = buildBaseRepoDetail({ repo, context, scope, mode });
-  if (debugNotIndexed) {
-    detail.not_indexed_debug = {
-      excluded_by_extension: [],
-      skipped_processing: []
-    };
-  }
   let snapshot = null;
 
   try {
@@ -506,18 +526,22 @@ async function processRepo({
     let units = [];
 
     if (detail.mode_effective === 'full') {
-      const full = await listFullUnits(snapshot, extensionSet, debugNotIndexed);
+      const full = await listFullUnits(snapshot, extensionSet, debug);
       filesDetectedTotal = full.filesDetectedTotal;
       units = full.units;
-      if (debugNotIndexed) {
-        detail.not_indexed_debug.excluded_by_extension.push(...full.excludedByExtension);
+      if (debug === 'excluded') {
+        detail.debug_paths = full.excludedByExtension.map((item) => item.path);
+      } else if (debug === 'included') {
+        detail.debug_paths = units.map((item) => item.path);
       }
     } else {
-      const delta = await listDeltaUnits(snapshot, cursorBefore || fromSha, headSha, extensionSet, debugNotIndexed);
+      const delta = await listDeltaUnits(snapshot, cursorBefore || fromSha, headSha, extensionSet, debug);
       filesDetectedTotal = delta.filesDetectedTotal;
       units = delta.units;
-      if (debugNotIndexed) {
-        detail.not_indexed_debug.excluded_by_extension.push(...delta.excludedByExtension);
+      if (debug === 'excluded') {
+        detail.debug_paths = delta.excludedByExtension.map((item) => item.path);
+      } else if (debug === 'included') {
+        detail.debug_paths = units.map((item) => item.path);
       }
     }
 
@@ -533,7 +557,9 @@ async function processRepo({
         mode_effective: detail.mode_effective,
         files_detected_total: detail.files_detected_total,
         files_indexable_total: detail.files_indexable_total,
-        files_excluded_total: detail.files_excluded_total
+        files_excluded_total: detail.files_excluded_total,
+        debug_mode: debug,
+        debug_paths: detail.debug_paths || []
       });
     }
 
@@ -565,7 +591,6 @@ async function processRepo({
           detail.files_deleted += result.deleted;
           if (result.skipped) detail.files_skipped += 1;
           if (result.warning) detail.warnings.push(result.warning);
-          if (result.skipped) pushNotIndexedDebug(detail, unit.path, result.warning || 'delete_skipped');
         } else {
           // Handle rename cleanup before ingesting new path.
           for (const deletePath of unit.deletePaths || []) {
@@ -599,12 +624,10 @@ async function processRepo({
           detail.points_upserted += result.pointsUpserted;
           detail.estimated_tokens_total += result.estimatedTokens;
           if (result.warning) detail.warnings.push(result.warning);
-          if (result.skipped) pushNotIndexedDebug(detail, unit.path, result.warning || 'upsert_skipped');
         }
       } catch (err) {
         detail.files_skipped += 1;
         detail.warnings.push(`File "${unit.path}": ${err.message}`);
-        pushNotIndexedDebug(detail, unit.path, err.message);
       } finally {
         processed += 1;
         if (typeof onRepoProgress === 'function') {
@@ -645,7 +668,7 @@ export async function ingestGithubBatch({
   includeExtensions = null,
   fromSha = null,
   dryRun = false,
-  debugNotIndexed = false,
+  debug = null,
   onRepoStart,
   onRepoProgress
 }) {
@@ -653,6 +676,10 @@ export async function ingestGithubBatch({
   const normalizedMode = String(mode || '').toLowerCase();
   if (!ALLOWED_MODES.has(normalizedMode)) {
     throw new Error(`Invalid mode "${mode}". Valid values: full, delta.`);
+  }
+  const normalizedDebug = debug == null ? null : String(debug).trim().toLowerCase();
+  if (normalizedDebug && !['excluded', 'included'].includes(normalizedDebug)) {
+    throw new Error(`Invalid debug "${debug}". Valid values: excluded, included.`);
   }
 
   const normalizedContext = resolveContextScope(context, scope).context;
@@ -693,7 +720,7 @@ export async function ingestGithubBatch({
         onRepoProgress,
         collection,
         driver,
-        debugNotIndexed
+        debug: normalizedDebug
       });
       details.push(detail);
     } catch (err) {
@@ -711,6 +738,7 @@ export async function ingestGithubBatch({
 
   const reposSuccess = details.filter((item) => item.status === 'success').length;
   const reposFailed = details.length - reposSuccess;
+  const totalsChunks = details.reduce((acc, item) => acc + (item.points_upserted || 0), 0);
   const totalsEstimatedTokens = details.reduce((acc, item) => acc + (item.estimated_tokens_total || 0), 0);
 
   return {
@@ -725,7 +753,8 @@ export async function ingestGithubBatch({
     repos_failed: reposFailed,
     totals_files_detected: details.reduce((acc, item) => acc + (item.files_detected_total || 0), 0),
     totals_files_indexable: details.reduce((acc, item) => acc + (item.files_indexable_total || 0), 0),
-    totals_points_upserted: details.reduce((acc, item) => acc + (item.points_upserted || 0), 0),
+    totals_points_upserted: totalsChunks,
+    totals_chunks: totalsChunks,
     totals_estimated_tokens: totalsEstimatedTokens,
     totals_estimated_cost_usd: estimateCost(totalsEstimatedTokens),
     details

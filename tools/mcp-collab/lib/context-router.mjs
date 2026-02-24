@@ -3,15 +3,15 @@
 // ---------------------------------------------------------------------------
 
 import {
-  QDRANT_COLLECTION_TECH_UXMAL,
-  QDRANT_COLLECTION_TECH_ENVIAFLORES,
+  QDRANT_COLLECTION_TECHNICAL_UXMALTECH,
+  QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES,
   QDRANT_COLLECTION_BUSINESS,
   NEBULA_SPACE_TECHNICAL,
   NEBULA_SPACE_BUSINESS
 } from '../config.mjs';
 
 export const CONTEXTS = /** @type {const} */ (['technical', 'business']);
-export const SCOPES = /** @type {const} */ (['uxmal', 'enviaflores', 'business', 'global']);
+export const SCOPES = /** @type {const} */ (['uxmaltech', 'enviaflores', 'business', 'global']);
 
 function normalize(value, fallback = '') {
   return String(value ?? fallback).trim().toLowerCase();
@@ -21,11 +21,11 @@ export function getScopeCatalog() {
   return {
     contexts: {
       technical: {
-        scopes: ['uxmal', 'enviaflores', 'global'],
+        scopes: ['uxmaltech', 'enviaflores', 'global'],
         collections: {
-          uxmal: [QDRANT_COLLECTION_TECH_UXMAL],
-          enviaflores: [QDRANT_COLLECTION_TECH_ENVIAFLORES],
-          global: [QDRANT_COLLECTION_TECH_UXMAL, QDRANT_COLLECTION_TECH_ENVIAFLORES]
+          uxmaltech: [QDRANT_COLLECTION_TECHNICAL_UXMALTECH],
+          enviaflores: [QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES],
+          global: [QDRANT_COLLECTION_TECHNICAL_UXMALTECH, QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES]
         },
         space: NEBULA_SPACE_TECHNICAL
       },

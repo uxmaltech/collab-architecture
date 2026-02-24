@@ -45,9 +45,10 @@ export const ARCH_COLLECTION = process.env.ARCH_COLLECTION || process.env.QDRANT
 export const BUSINESS_COLLECTION = process.env.BUSINESS_COLLECTION || 'business-architecture-canon';
 
 // V2 collections
-export const QDRANT_COLLECTION_TECH_UXMAL = process.env.QDRANT_COLLECTION_TECH_UXMAL || 'tech-uxmal';
-export const QDRANT_COLLECTION_TECH_ENVIAFLORES =
-  process.env.QDRANT_COLLECTION_TECH_ENVIAFLORES || 'tech-enviaflores';
+export const QDRANT_COLLECTION_TECHNICAL_UXMALTECH =
+  process.env.QDRANT_COLLECTION_TECHNICAL_UXMALTECH || 'technical-uxmaltech';
+export const QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES =
+  process.env.QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES || 'technical-enviaflores';
 export const QDRANT_COLLECTION_BUSINESS = process.env.QDRANT_COLLECTION_BUSINESS || 'business-rules';
 
 export const NEBULA_CONSOLE_IMAGE = process.env.NEBULA_CONSOLE_IMAGE || 'vesoft/nebula-console:v3.6.0';

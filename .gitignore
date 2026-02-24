@@ -10,4 +10,8 @@ node_modules/
 tools/mcp-collab/.pid
 tools/mcp-collab/mcp.log
 
+# Python bytecode / caches
+__pycache__/
+*.pyc
+
 .claude

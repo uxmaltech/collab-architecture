@@ -78,8 +78,10 @@ Do not introduce shared transport state across sessions.
 - Incremental GitHub ingestion runs via `npm run ingest:github -- ...` (or root `make ingest-github` / `make update-github`).
 - `ingest:github` requires explicit non-global scope and uses cursor persistence in `QDRANT_COLLECTION_INGEST_CURSORS`.
 - Repository reads for `ingest:github` use temporary local clones + git diff/tree inspection (not GitHub compare/tree/blob API).
+- GitHub-ingested chunk payloads include `language`, `content_kind`, `embedding_profile`, `symbol_name`, and `symbol_path`.
+- Symbol extraction is parser-driven via an extensible registry in `lib/code-metadata` (built-ins: PHP, TS/JS).
 - Non-dry GitHub ingestion always runs a preflight summary and interactive confirmation unless `--skip-embed-confirm` is set.
-- Use `--debug-not-indexed` when diagnosing extension filters or file-level ingestion failures.
+- Use `--debug excluded|included` when diagnosing extension filters or validating which files will be processed.
 - Nebula V2 seed is separate and must be explicitly implemented/executed.
 
 ### Testing checklist

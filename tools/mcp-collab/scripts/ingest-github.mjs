@@ -13,12 +13,12 @@ function printHelp() {
   process.stdout.write(
     [
       'Usage:',
-      '  npm run ingest:github -- --repo owner/name --context technical --scope uxmal --mode full',
+      '  npm run ingest:github -- --repo owner/name --context technical --scope uxmaltech --mode full',
       '',
       'Required:',
       '  --repo <owner/name>       Repeatable repository argument.',
       '  --context <technical|business>',
-      '  --scope <uxmal|enviaflores|business>',
+      '  --scope <uxmaltech|enviaflores|business>',
       '  --mode <full|delta>',
       '',
       'Optional:',
@@ -26,7 +26,7 @@ function printHelp() {
       '  --include-ext <csv>       File extensions to index.',
       '  --from-sha <sha>          Base SHA for delta mode.',
       '  --dry-run                 Estimate only (no writes, no embedding API calls).',
-      '  --debug-not-indexed       Include debug list of non-indexed files in JSON output.',
+      '  --debug <excluded|included>  Print excluded/included file path list before processing.',
       '  --skip-embed-confirm      Skip the default preflight confirmation before writes.',
       '  --no-progress             Disable progress output.',
       '  --help                    Show this help.',
@@ -46,7 +46,7 @@ function parseArgs(argv) {
     includeExtensions: [],
     fromSha: null,
     dryRun: false,
-    debugNotIndexed: false,
+    debug: null,
     skipEmbedConfirm: false,
     noProgress: false
   };
@@ -72,11 +72,6 @@ function parseArgs(argv) {
       args.skipEmbedConfirm = true;
       continue;
     }
-    if (token === '--debug-not-indexed') {
-      args.debugNotIndexed = true;
-      continue;
-    }
-
     const value = argv[i + 1];
     if (value == null) {
       throw new Error(`Missing value for argument ${token}.`);
@@ -116,6 +111,10 @@ function parseArgs(argv) {
         args.fromSha = value;
         i += 1;
         break;
+      case '--debug':
+        args.debug = value.toLowerCase();
+        i += 1;
+        break;
       default:
         throw new Error(`Unknown argument: ${token}`);
     }
@@ -124,7 +123,7 @@ function parseArgs(argv) {
   return args;
 }
 
-function buildProgressHandlers({ enabled }) {
+function buildProgressHandlers({ enabled, includeDebugList = false }) {
   const interactive = enabled && process.stderr.isTTY;
   const milestonesByRepo = new Map();
 
@@ -159,6 +158,12 @@ function buildProgressHandlers({ enabled }) {
         `repo=${info.repo} mode=${info.mode_effective} branch=${info.branch} detected=${info.files_detected_total} ` +
           `indexable=${info.files_indexable_total} excluded=${info.files_excluded_total}\n`
       );
+      if (includeDebugList && info.debug_mode && Array.isArray(info.debug_paths)) {
+        process.stderr.write(`debug repo=${info.repo} type=${info.debug_mode} count=${info.debug_paths.length}\n`);
+        for (const filePath of info.debug_paths) {
+          process.stderr.write(`  - ${filePath}\n`);
+        }
+      }
     },
     onRepoProgress: ({ repo, processed, total }) => {
       writeProgress(repo, processed, total);
@@ -167,13 +172,14 @@ function buildProgressHandlers({ enabled }) {
 }
 
 function printPreflightSummary(summary) {
+  const totalChunks = summary.totals_chunks ?? summary.totals_points_upserted ?? 0;
   process.stderr.write(
     [
       '',
       'Preflight summary (no writes):',
       `  repos_total=${summary.repos_total} success=${summary.repos_success} failed=${summary.repos_failed}`,
       `  totals_detected=${summary.totals_files_detected} totals_indexable=${summary.totals_files_indexable}`,
-      `  totals_estimated_tokens=${summary.totals_estimated_tokens} totals_estimated_cost_usd=${summary.totals_estimated_cost_usd ?? 'null'}`,
+      `  totals_chunks=${totalChunks} totals_estimated_tokens=${summary.totals_estimated_tokens} totals_estimated_cost_usd=${summary.totals_estimated_cost_usd ?? 'null'}`,
       ''
     ].join('\n')
   );
@@ -184,7 +190,24 @@ function printPreflightSummary(summary) {
         `status=${detail.status} detected=${detail.files_detected_total} indexable=${detail.files_indexable_total} ` +
         `tokens=${detail.estimated_tokens_total} cost=${detail.estimated_cost_usd ?? 'null'}\n`
     );
+    if (detail.status !== 'success' && detail.error) {
+      process.stderr.write(`    error=${detail.error}\n`);
+    }
   }
+}
+
+function printBatchTotals(summary, { label = 'Run totals' } = {}) {
+  const totalChunks = summary.totals_chunks ?? summary.totals_points_upserted ?? 0;
+  process.stderr.write(
+    [
+      '',
+      `${label}:`,
+      `  chunks=${totalChunks}`,
+      `  tokens=${summary.totals_estimated_tokens ?? 0}`,
+      `  estimated_cost_usd=${summary.totals_estimated_cost_usd ?? 'null'}`,
+      ''
+    ].join('\n')
+  );
 }
 
 async function askForConfirmation() {
@@ -219,7 +242,14 @@ async function main() {
   if (!args.scope) throw new Error('--scope is required.');
   if (!args.mode) throw new Error('--mode is required.');
 
-  const handlers = buildProgressHandlers({ enabled: !args.noProgress });
+  const runHandlers = buildProgressHandlers({
+    enabled: !args.noProgress,
+    includeDebugList: args.dryRun && Boolean(args.debug)
+  });
+  const preflightHandlers = buildProgressHandlers({
+    enabled: false,
+    includeDebugList: Boolean(args.debug)
+  });
 
   if (!args.dryRun) {
     const preflight = await ingestGithubBatch({
@@ -231,7 +261,8 @@ async function main() {
       includeExtensions: args.includeExtensions.length ? args.includeExtensions : null,
       fromSha: args.fromSha,
       dryRun: true,
-      debugNotIndexed: args.debugNotIndexed
+      debug: args.debug,
+      onRepoStart: preflightHandlers.onRepoStart
     });
 
     printPreflightSummary(preflight);
@@ -269,10 +300,16 @@ async function main() {
     includeExtensions: args.includeExtensions.length ? args.includeExtensions : null,
     fromSha: args.fromSha,
     dryRun: args.dryRun,
-    debugNotIndexed: args.debugNotIndexed,
-    onRepoStart: handlers.onRepoStart,
-    onRepoProgress: handlers.onRepoProgress
+    debug: args.debug,
+    onRepoStart: runHandlers.onRepoStart,
+    onRepoProgress: runHandlers.onRepoProgress
   });
+
+  if ((summary.repos_total || 0) > 1) {
+    printBatchTotals(summary, {
+      label: args.dryRun ? 'Dry-run totals' : 'Run totals'
+    });
+  }
 
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
   if (summary.repos_failed > 0) {

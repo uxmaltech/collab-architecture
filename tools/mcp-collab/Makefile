@@ -78,7 +78,7 @@ ingest-github: install
 		exit 1; \
 	fi
 	@if [ -z "$(SCOPE)" ]; then \
-		echo "SCOPE is required (uxmal|enviaflores|business)."; \
+		echo "SCOPE is required (uxmaltech|enviaflores|business)."; \
 		exit 1; \
 	fi
 	@if [ -z "$(MODE)" ]; then \
@@ -94,7 +94,7 @@ ingest-github: install
 	if [ -n "$(INCLUDE_EXT)" ]; then cmd="$$cmd --include-ext $(INCLUDE_EXT)"; fi; \
 	if [ -n "$(FROM_SHA)" ]; then cmd="$$cmd --from-sha $(FROM_SHA)"; fi; \
 	if [ "$(DRY_RUN)" = "true" ]; then cmd="$$cmd --dry-run"; fi; \
-	if [ "$(DEBUG_NOT_INDEXED)" = "true" ]; then cmd="$$cmd --debug-not-indexed"; fi; \
+	if [ -n "$(DEBUG)" ]; then cmd="$$cmd --debug $(DEBUG)"; fi; \
 	if [ "$(SKIP_EMBED_CONFIRM)" = "true" ]; then cmd="$$cmd --skip-embed-confirm"; fi; \
 	if [ "$(NO_PROGRESS)" = "true" ]; then cmd="$$cmd --no-progress"; fi; \
 	echo "$$cmd"; \

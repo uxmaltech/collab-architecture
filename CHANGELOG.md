@@ -9,13 +9,16 @@ Incremental GitHub ingestion for V2 collections, with per-repo counting, estimat
 - **`scripts/ingest-github.mjs`** — new CLI ingestion command with `full` and `delta` modes.
 - **`lib/git-repo-client.mjs`** — temporary clone and local git inspection helpers (default branch resolution, commit availability, tree listing, diff, blob SHA/path reads).
 - **`lib/ingest-github.mjs`** — ingestion orchestrator with pre-scan metrics, scoped collection routing, delete-then-upsert behavior, and per-repo summary output.
+- **`lib/code-metadata/*`** — extensible AST parser registry and built-in symbol parsers for PHP and TS/JS.
 - **`make ingest-github` / `make update-github`** — root-level entrypoints to run full or delta ingestion from the repository root.
-- **Debug reporting for non-indexed files** — optional `--debug-not-indexed` (`DEBUG_NOT_INDEXED=true` in make) includes excluded/skipped file paths and reasons in output JSON.
+- **Debug list output before processing** — optional `--debug <excluded|included>` (`DEBUG=excluded|included` in make) prints file lists detected in pre-scan.
 
 ### Changed
 
 - **`lib/qdrant.mjs`** — added `qdrantDeleteByFilter` and `qdrantScroll`; `ensureCollection` now supports explicit vector size for specialized collections.
 - **`config.mjs`** — added `GITHUB_TOKEN`, `QDRANT_COLLECTION_INGEST_CURSORS`, and optional `EMBED_PRICE_PER_1M_TOKENS` validation.
+- **V2 technical collection naming** — switched defaults from `tech-*` to `technical-*` and renamed env vars to `QDRANT_COLLECTION_TECHNICAL_UXMALTECH` and `QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES` (no alias/fallback).
+- **GitHub chunk payload metadata** — now stores `language`, `content_kind`, `embedding_profile`, `symbol_name`, and `symbol_path`; symbol mapping is chunk-range aware.
 - **`tools/mcp-collab/package.json`** — added `ingest:github` script and aligned env-file loading to preserve CLI argument forwarding.
 - **`scripts/ingest-github.mjs`** — non-dry runs now always execute preflight summary + confirmation before writes; can be bypassed with `--skip-embed-confirm` for automation.
 

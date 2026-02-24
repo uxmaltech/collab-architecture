@@ -21,7 +21,7 @@ const TECH_SOURCES = [
   {
     file: 'docs/core-packages.md',
     context: 'technical',
-    scope: 'uxmal',
+    scope: 'uxmaltech',
     organization: 'uxmaltech',
     repo: 'uxmaltech/multi',
     package: 'uxmal-packages',
@@ -30,7 +30,7 @@ const TECH_SOURCES = [
   {
     file: 'docs/uxmal-architecture.md',
     context: 'technical',
-    scope: 'uxmal',
+    scope: 'uxmaltech',
     organization: 'uxmaltech',
     repo: 'uxmaltech/uxmal-site',
     package: 'uxmal-site',

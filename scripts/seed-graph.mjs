@@ -31,6 +31,18 @@ function log(msg)  { console.log(`  ✔ ${msg}`); }
 function info(msg) { console.log(`  → ${msg}`); }
 function fail(msg) { console.error(`  ✖ ${msg}`); process.exit(1); }
 
+function sleep(ms) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+function isRetryableSchemaError(err) {
+  const message = String(err?.message || '');
+  return (
+    /No schema found/i.test(message) ||
+    /Schema not exist/i.test(message)
+  );
+}
+
 /**
  * Parse an .ngql file into individual statements, stripping comments and
  * blank lines, splitting on semicolons.
@@ -71,13 +83,33 @@ function parseNgql(filePath) {
 /**
  * Execute statements sequentially against the given client, skipping USE.
  */
-async function runStatements(client, statements, label) {
+async function runStatements(client, statements, label, options = {}) {
+  const {
+    space = null,
+    retryOnSchema = false,
+    retryAttempts = 30,
+    retryDelayMs = 2000
+  } = options;
+
   for (const stmt of statements) {
-    if (/^USE\s+\w+$/i.test(stmt)) continue;  // handled by pool space
-    try {
-      await client.execute(stmt);
-    } catch (err) {
-      fail(`[${label}] Failed on statement:\n    ${stmt}\n    ${err.message}`);
+    if (/^USE\s+\w+$/i.test(stmt)) continue;
+
+    let attempt = 0;
+    while (true) {
+      try {
+        if (space) {
+          await client.execute(`USE ${space}`);
+        }
+        await client.execute(stmt);
+        break;
+      } catch (err) {
+        attempt += 1;
+        if (retryOnSchema && isRetryableSchemaError(err) && attempt < retryAttempts) {
+          await sleep(retryDelayMs);
+          continue;
+        }
+        fail(`[${label}] Failed on statement:\n    ${stmt}\n    ${err.message}`);
+      }
     }
   }
 }
@@ -109,7 +141,7 @@ async function main() {
       const result = await bootstrapClient.execute('SHOW HOSTS');
       if (result?.data?.Status?.includes?.('ONLINE')) { hostsOnline = true; break; }
     } catch { /* graphd may not be ready yet */ }
-    await new Promise(r => setTimeout(r, 2000));
+    await sleep(2000);
   }
   if (!hostsOnline) fail('No storage hosts came ONLINE after 60s — ensure storaged is registered (run ADD HOSTS on the server)');
   log('Storage hosts ONLINE');
@@ -133,7 +165,7 @@ async function main() {
       ready = true;
       break;
     } catch {
-      await new Promise(r => setTimeout(r, 2000));
+      await sleep(2000);
     }
   }
   if (!ready) fail('Space did not become active after 60s');
@@ -154,7 +186,7 @@ async function main() {
   const schemaFile = resolve(ROOT, 'graph/seed/schema.ngql');
   info(`Applying schema: ${schemaFile}`);
   const schemaStatements = parseNgql(schemaFile);
-  await runStatements(client, schemaStatements, 'schema');
+  await runStatements(client, schemaStatements, 'schema', { space: ARCH_SPACE });
   log(`Schema applied (${schemaStatements.length} statements)`);
 
   // 4. Wait for schema to propagate
@@ -165,7 +197,7 @@ async function main() {
       const result = await client.execute('DESCRIBE TAG Node');
       if (result?.data?.Field?.length > 0) { schemaReady = true; break; }
     } catch { /* not ready yet */ }
-    await new Promise(r => setTimeout(r, 2000));
+    await sleep(2000);
   }
   if (!schemaReady) fail('Schema did not propagate after 60s');
   log('Schema ready');
@@ -174,7 +206,12 @@ async function main() {
   const dataFile = resolve(ROOT, 'graph/seed/data.ngql');
   info(`Applying data: ${dataFile}`);
   const dataStatements = parseNgql(dataFile);
-  await runStatements(client, dataStatements, 'data');
+  await runStatements(client, dataStatements, 'data', {
+    space: ARCH_SPACE,
+    retryOnSchema: true,
+    retryAttempts: 45,
+    retryDelayMs: 2000
+  });
   log(`Data applied (${dataStatements.length} statements)`);
 
   console.log('\n✅ Seed complete\n');

@@ -80,7 +80,7 @@ export function register(server) {
       description: 'Search V2 context collections using configurable embedding providers.',
       inputSchema: {
         context: z.enum(['technical', 'business']).describe('Context to search.'),
-        scope: z.enum(['uxmal', 'enviaflores', 'business', 'global']).optional().describe('Scope within context.'),
+        scope: z.enum(['uxmaltech', 'enviaflores', 'business', 'global']).optional().describe('Scope within context.'),
         query: z.string().min(1).describe('Search text.'),
         limit: z.number().int().min(1).max(50).optional().describe('Max results, default 8.'),
         filters: z.any().optional().describe('Optional additional Qdrant filter object.')

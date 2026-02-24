@@ -140,7 +140,7 @@ export function register(server) {
         direction: z.enum(['out', 'in', 'both']).optional().describe('Traversal direction, default both.'),
         edge_types: z.array(z.string()).optional().describe('Optional edge type filter.'),
         node_types: z.array(z.string()).optional().describe('Optional neighbor node_type filter.'),
-        scope: z.enum(['uxmal', 'enviaflores', 'business', 'global']).optional().describe('Optional scope filter.'),
+        scope: z.enum(['uxmaltech', 'enviaflores', 'business', 'global']).optional().describe('Optional scope filter.'),
         max_nodes_per_hop: z.number().int().min(1).max(200).optional().describe('Max new nodes per hop, default 50.')
       },
       annotations: ANNOTATIONS

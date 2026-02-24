@@ -38,8 +38,8 @@ This repo has a deliberate separation between bootstrap and update flows. Avoid 
 ## MCP Contexts
 - V2 tools (default): `context.scopes.list.v2`, `context.vector.search.v2`, `context.graph.degree.search.v2`.
 - V2 Qdrant collections:
-  - `tech-uxmal`
-  - `tech-enviaflores`
+  - `technical-uxmaltech`
+  - `technical-enviaflores`
   - `business-rules`
 - V2 Nebula spaces:
   - `technical_architecture`
@@ -51,9 +51,11 @@ This repo has a deliberate separation between bootstrap and update flows. Avoid 
 - GitHub ingestion uses temporary local clones and git diff/tree reads (no GitHub compare/tree/blob API path).
 - Optional cost reporting uses `EMBED_PRICE_PER_1M_TOKENS` (USD estimate).
 - Incremental cursors are stored in `QDRANT_COLLECTION_INGEST_CURSORS` (default: `ingest-cursors`).
-- Ingestion writes require explicit non-global scopes (`uxmal`, `enviaflores`, or `business`).
+- Ingestion writes require explicit non-global scopes (`uxmaltech`, `enviaflores`, or `business`).
 - Non-dry runs require preflight confirmation by default; use `SKIP_EMBED_CONFIRM=true` (or `--skip-embed-confirm`) only for non-interactive automation.
-- Set `DEBUG_NOT_INDEXED=true` (or `--debug-not-indexed`) to include excluded/skipped file path details in the JSON report.
+- Set `DEBUG=excluded|included` (or `--debug <excluded|included>`) to print file lists before processing.
+- GitHub-ingested chunk payloads include `language`, `content_kind`, `embedding_profile`, `symbol_name`, and `symbol_path` metadata.
+- Symbol extraction uses an extensible AST parser registry (current built-ins: PHP and TS/JS), with safe fallback when parsing fails.
 
 ## Coding Style & Naming Conventions
 - Use `kebab-case` filenames with stable IDs, e.g., `knowledge/axioms/AX-001-authoritative-canon.md`.

@@ -37,12 +37,12 @@ cp .env.example .env    # create local config (defaults work for dev)
 make tools-up           # start databases + MCP server (background)
 make tools-dev          # alternative: foreground with auto-reload
 make ingest-v2          # ingest V2 vector data into scoped Qdrant collections
-make ingest-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal MODE=full
-make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal
+make ingest-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech MODE=full
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech
 # Use SKIP_EMBED_CONFIRM=true only for non-interactive automation
-# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal SKIP_EMBED_CONFIRM=true
-# Add DEBUG_NOT_INDEXED=true to include excluded/skipped file paths in output JSON
-# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal DEBUG_NOT_INDEXED=true
+# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech SKIP_EMBED_CONFIRM=true
+# Add DEBUG=excluded|included to print file lists before processing
+# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech DEBUG=excluded
 ```
 
 Endpoint: `http://127.0.0.1:7337/mcp`

@@ -38,8 +38,10 @@ function remoteUrl(fullName) {
 
 async function runGit(args, { cwd = null, useAuth = false } = {}) {
   requireGithubToken();
+  const basicAuth = Buffer.from(`x-access-token:${GITHUB_TOKEN}`, 'utf8').toString('base64');
+  const authHeader = `Authorization: Basic ${basicAuth}`;
   const commandArgs = useAuth
-    ? ['-c', `http.extraheader=Authorization: Bearer ${GITHUB_TOKEN}`, ...args]
+    ? ['-c', `http.extraheader=${authHeader}`, ...args]
     : args;
 
   try {

@@ -173,7 +173,7 @@ Or directly via npm (assumes databases are already running):
 npm start          # background-friendly, loads ../../.env if present
 npm run dev        # foreground with --watch, loads ../../.env if present
 npm run ingest:v2  # ingest V2 sources from docs/*.md into scoped Qdrant collections
-npm run ingest:github -- --repo uxmaltech/core --context technical --scope uxmal --mode full
+npm run ingest:github -- --repo uxmaltech/core --context technical --scope uxmaltech --mode full
 ```
 
 Default endpoint: `http://127.0.0.1:7337/mcp`
@@ -227,8 +227,8 @@ The implementation uses a custom `simpleBearerAuth` middleware instead of the SD
 | `BUSINESS_COLLECTION` | `business-architecture-canon` | Qdrant collection for business context |
 | `NEBULA_SPACE_TECHNICAL` | `technical_architecture` | V2 technical graph space (single space for cross-repo impact). |
 | `NEBULA_SPACE_BUSINESS` | `business_architecture` | V2 business graph space. |
-| `QDRANT_COLLECTION_TECH_UXMAL` | `tech-uxmal` | V2 technical collection for Uxmal scopes. |
-| `QDRANT_COLLECTION_TECH_ENVIAFLORES` | `tech-enviaflores` | V2 technical collection for EnviaFlores scopes. |
+| `QDRANT_COLLECTION_TECHNICAL_UXMALTECH` | `technical-uxmaltech` | V2 technical collection for UxmalTech scopes. |
+| `QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES` | `technical-enviaflores` | V2 technical collection for EnviaFlores scopes. |
 | `QDRANT_COLLECTION_BUSINESS` | `business-rules` | V2 business-rules collection. |
 | `QDRANT_COLLECTION_INGEST_CURSORS` | `ingest-cursors` | Qdrant collection used to persist GitHub incremental cursors (`last_processed_sha`). |
 | `QDRANT_URL` | `http://localhost:6333` | Qdrant HTTP endpoint |
@@ -261,14 +261,16 @@ The implementation uses a custom `simpleBearerAuth` middleware instead of the SD
 
 This returns:
 1. Matched chunks across V2 scoped collections
-2. Collection provenance per match (`tech-uxmal` / `tech-enviaflores` / `business-rules`)
+2. Collection provenance per match (`technical-uxmaltech` / `technical-enviaflores` / `business-rules`)
 3. Embedding metadata (`provider`, `model`, `dim`) and `index_version`
+4. Chunk metadata in `payload` (for GitHub-ingested content): `language`, `content_kind`, `embedding_profile`, `symbol_name`, `symbol_path`
 
 ## GitHub incremental ingestion (CLI)
 
 `ingest:github` ingests repository content into V2 scoped collections using `full` and `delta` modes.
 By default (when not using `--dry-run`), it always runs a preflight summary and asks for confirmation before writing embeddings.
 Use `--skip-embed-confirm` to bypass that prompt (for CI/non-interactive runs).
+For supported languages (PHP and TS/JS), the ingester extracts AST-based symbols per file and maps symbols to chunk ranges.
 
 Examples:
 
@@ -277,7 +279,7 @@ Examples:
 npm run ingest:github -- \
   --repo uxmaltech/core \
   --context technical \
-  --scope uxmal \
+  --scope uxmaltech \
   --mode full
 
 # Delta update for multiple repos (repeated --repo)
@@ -285,7 +287,7 @@ npm run ingest:github -- \
   --repo uxmaltech/core \
   --repo uxmaltech/auth \
   --context technical \
-  --scope uxmal \
+  --scope uxmaltech \
   --mode delta
 
 # Dry-run with custom extensions and no progress rendering
@@ -298,22 +300,22 @@ npm run ingest:github -- \
   --dry-run \
   --no-progress
 
-# Include debug payload for files that were not indexed
+# Print debug list before processing (excluded by extension)
 npm run ingest:github -- \
   --repo uxmaltech/core \
   --context technical \
-  --scope uxmal \
+  --scope uxmaltech \
   --mode delta \
-  --debug-not-indexed
+  --debug excluded
 ```
 
 Root Make targets are also available:
 
 ```bash
-make ingest-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal MODE=full
-make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal
-make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal SKIP_EMBED_CONFIRM=true
-make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmal DEBUG_NOT_INDEXED=true
+make ingest-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech MODE=full
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech SKIP_EMBED_CONFIRM=true
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech DEBUG=excluded
 ```
 
 ## Legacy note: `business.rule`

@@ -94,6 +94,13 @@ def load_payload() -> List[Dict[str, Any]]:
         raise FileNotFoundError(f"Payload not found: {PAYLOAD_PATH}")
     return json.loads(PAYLOAD_PATH.read_text(encoding="utf-8"))
 
+def delete_payload_file() -> None:
+    try:
+        PAYLOAD_PATH.unlink(missing_ok=True)
+    except Exception as exc:
+        # Non-fatal cleanup warning; ingestion already succeeded.
+        print(f"Warning: failed to delete payload file {PAYLOAD_PATH}: {exc}")
+
 
 def upsert_points(points: List[Dict[str, Any]]) -> None:
     body = {"points": points}
@@ -111,6 +118,7 @@ def main() -> int:
     total = len(payload)
     if total == 0:
         print("No points to upsert.")
+        delete_payload_file()
         return 0
 
     for start in range(0, total, BATCH_SIZE):
@@ -125,6 +133,7 @@ def main() -> int:
         upsert_points(points)
         print(f"Upserted {min(start + BATCH_SIZE, total)} / {total}")
 
+    delete_payload_file()
     return 0
 
 
