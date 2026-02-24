@@ -155,11 +155,13 @@ seed-graph:
 			if [ $$i -ge 30 ]; then echo "Space collab_architecture not ready for USE"; exit 1; fi; \
 			sleep 2; \
 		done; \
-		docker run --rm --network $$net \
+		schema_out=$$(docker run --rm --network $$net \
 			-v $(CURDIR)/graph/seed:/seed:ro \
 			$(NEBULA_CONSOLE_IMAGE) \
 			-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
-			-f /seed/schema.ngql; \
+			-f /seed/schema.ngql); \
+		echo "$$schema_out"; \
+		echo "$$schema_out" | grep -Fq '[ERROR' && exit 1 || true; \
 		i=0; \
 		until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
 			-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
@@ -169,12 +171,15 @@ seed-graph:
 			sleep 2; \
 		done; \
 		i=0; \
-		until docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
-			-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
-			-e 'USE collab_architecture; INSERT VERTEX Node(node_type, name) VALUES "SCHEMA-CHECK":("SchemaCheck","SchemaCheck");' 2>/dev/null \
-			| grep -q 'Execution succeeded'; do \
+		while true; do \
+			insert_out=$$(docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
+				-u $(NEBULA_USER) -p $(NEBULA_PASSWORD) -addr $(NEBULA_ADDR) -port $(NEBULA_PORT) \
+				-e 'USE collab_architecture; INSERT VERTEX Node(node_type, name) VALUES "SCHEMA-CHECK":("SchemaCheck","SchemaCheck");' 2>/dev/null); \
+			if echo "$$insert_out" | grep -q 'Execution succeeded' && ! echo "$$insert_out" | grep -Fq '[ERROR'; then \
+				break; \
+			fi; \
 			i=$$((i+1)); \
-			if [ $$i -ge 30 ]; then echo "Schema insert check failed"; exit 1; fi; \
+			if [ $$i -ge 30 ]; then echo "Schema insert check failed"; echo "$$insert_out"; exit 1; fi; \
 			sleep 2; \
 		done; \
 		docker run --rm --network $$net $(NEBULA_CONSOLE_IMAGE) \
