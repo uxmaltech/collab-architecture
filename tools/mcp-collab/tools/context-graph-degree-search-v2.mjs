@@ -34,7 +34,7 @@ async function getNodeFields(space) {
     return NODE_FIELDS_CACHE.get(space);
   }
 
-  const rows = parseRows(await runNebulaQuery(`USE ${space}; DESCRIBE TAG Node;`));
+  const rows = parseRows(await runNebulaQuery([`USE ${space};`, 'DESCRIBE TAG Node;']));
   const fields = new Set();
   for (const row of rows) {
     const key = Object.keys(row).find((k) => k.toLowerCase() === 'field');
@@ -56,15 +56,16 @@ function runNeighborQuery({ space, frontierIds, incoming, rowLimit, supportsScop
   const contextSelect = maybeSelect('src.Node.context', 'from_context', supportsContext);
   const contextSelect2 = maybeSelect('dst.Node.context', 'to_context', supportsContext);
 
-  const query =
-    `USE ${space}; ` +
+  const query = [
+    `USE ${space};`,
     `MATCH (src:Node)-[e]->(dst:Node) ` +
-    `WHERE ${where} ` +
-    `RETURN id(src) AS from_id, id(dst) AS to_id, type(e) AS edge_type, ` +
-    `src.Node.node_type AS from_type, dst.Node.node_type AS to_type, ` +
-    `src.Node.name AS from_name, dst.Node.name AS to_name, ` +
-    `${scopeSelect}, ${scopeSelect2}, ${contextSelect}, ${contextSelect2} ` +
-    `LIMIT ${rowLimit};`;
+      `WHERE ${where} ` +
+      `RETURN id(src) AS from_id, id(dst) AS to_id, type(e) AS edge_type, ` +
+      `src.Node.node_type AS from_type, dst.Node.node_type AS to_type, ` +
+      `src.Node.name AS from_name, dst.Node.name AS to_name, ` +
+      `${scopeSelect}, ${scopeSelect2}, ${contextSelect}, ${contextSelect2} ` +
+      `LIMIT ${rowLimit};`
+  ];
   return runNebulaQuery(query);
 }
 
@@ -118,11 +119,12 @@ async function loadSeed(space, seedId, supportsScope, supportsContext) {
   const scopeSelect = maybeSelect('n.Node.scope', 'scope', supportsScope);
   const contextSelect = maybeSelect('n.Node.context', 'context', supportsContext);
 
-  const query =
-    `USE ${space}; ` +
+  const query = [
+    `USE ${space};`,
     `MATCH (n:Node) WHERE id(n) == "${escapeNebula(seedId)}" ` +
-    `RETURN id(n) AS id, n.Node.node_type AS node_type, n.Node.name AS name, ` +
-    `${scopeSelect}, ${contextSelect} LIMIT 1;`;
+      `RETURN id(n) AS id, n.Node.node_type AS node_type, n.Node.name AS name, ` +
+      `${scopeSelect}, ${contextSelect} LIMIT 1;`
+  ];
   const rows = parseRows(await runNebulaQuery(query));
   return rows[0] || null;
 }
