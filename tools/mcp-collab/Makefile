@@ -38,7 +38,7 @@ up: install
 
 dev: install
 	@echo "MCP server (watch mode) on http://$${MCP_HOST:-127.0.0.1}:$${MCP_PORT:-7337}/mcp"
-	@node --watch --env-file=../../.env server.mjs
+	@node --watch $$([ -f ../../.env ] && echo '--env-file=../../.env') server.mjs
 
 down:
 	@if [ -f $(MCP_PID_FILE) ]; then \
