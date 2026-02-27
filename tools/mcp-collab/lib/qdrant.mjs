@@ -5,6 +5,8 @@
 import { QDRANT_URL, QDRANT_API_KEY, VECTOR_SIZE } from '../config.mjs';
 import { embedDeterministic } from './hashing.mjs';
 
+const QDRANT_TIMEOUT_MS = 15_000;
+
 /**
  * Base headers for every Qdrant request.
  * Includes the api-key header only when QDRANT_API_KEY is set.
@@ -16,11 +18,29 @@ function qdrantHeaders(extra = {}) {
 }
 
 /**
+ * Wrapper around fetch with an automatic timeout via AbortController.
+ */
+async function qdrantFetch(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), QDRANT_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`Qdrant request timed out after ${QDRANT_TIMEOUT_MS}ms: ${options.method || 'GET'} ${url}`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Ensure a Qdrant collection exists with the expected vector size.
  * Creates the collection if missing; throws if size mismatches.
  */
 export async function ensureCollection(collection, { vectorSize = VECTOR_SIZE, distance = 'Cosine' } = {}) {
-  const res = await fetch(`${QDRANT_URL}/collections/${collection}`, {
+  const res = await qdrantFetch(`${QDRANT_URL}/collections/${collection}`, {
     headers: qdrantHeaders()
   });
   if (res.status === 200) {
@@ -38,7 +58,7 @@ export async function ensureCollection(collection, { vectorSize = VECTOR_SIZE, d
     const text = await res.text();
     throw new Error(`Qdrant error: ${res.status} ${text}`);
   }
-  const createRes = await fetch(`${QDRANT_URL}/collections/${collection}`, {
+  const createRes = await qdrantFetch(`${QDRANT_URL}/collections/${collection}`, {
     method: 'PUT',
     headers: qdrantHeaders(),
     body: JSON.stringify({
@@ -77,7 +97,7 @@ export async function qdrantSearchByVector({ vector, limit = 5, filter = null, c
   };
   if (filter) body.filter = filter;
 
-  const res = await fetch(`${QDRANT_URL}/collections/${collection}/points/search`, {
+  const res = await qdrantFetch(`${QDRANT_URL}/collections/${collection}/points/search`, {
     method: 'POST',
     headers: qdrantHeaders(),
     body: JSON.stringify(body)
@@ -95,7 +115,7 @@ export async function qdrantSearchByVector({ vector, limit = 5, filter = null, c
  */
 export async function qdrantUpsert({ points, collection }) {
   if (!points.length) return;
-  const res = await fetch(`${QDRANT_URL}/collections/${collection}/points?wait=true`, {
+  const res = await qdrantFetch(`${QDRANT_URL}/collections/${collection}/points?wait=true`, {
     method: 'PUT',
     headers: qdrantHeaders(),
     body: JSON.stringify({ points })
@@ -112,7 +132,7 @@ export async function qdrantUpsert({ points, collection }) {
  * Delete points from a collection by filter.
  */
 export async function qdrantDeleteByFilter({ collection, filter }) {
-  const res = await fetch(`${QDRANT_URL}/collections/${collection}/points/delete?wait=true`, {
+  const res = await qdrantFetch(`${QDRANT_URL}/collections/${collection}/points/delete?wait=true`, {
     method: 'POST',
     headers: qdrantHeaders(),
     body: JSON.stringify({ filter })
@@ -136,7 +156,7 @@ export async function qdrantScroll({ collection, filter = null, limit = 10, with
   };
   if (filter) body.filter = filter;
 
-  const res = await fetch(`${QDRANT_URL}/collections/${collection}/points/scroll`, {
+  const res = await qdrantFetch(`${QDRANT_URL}/collections/${collection}/points/scroll`, {
     method: 'POST',
     headers: qdrantHeaders(),
     body: JSON.stringify(body)

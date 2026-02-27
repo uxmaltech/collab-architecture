@@ -110,6 +110,20 @@ export function escapeNebula(value) {
  * Returns the combined text output of all statements, or an empty string.
  * Throws on connection errors or query failures.
  */
+/**
+ * Close all cached connection pools. Call during graceful shutdown.
+ */
+export async function closeAllPools() {
+  for (const [space, client] of pools) {
+    try {
+      if (typeof client.close === 'function') await client.close();
+    } catch (err) {
+      console.error(`Error closing Nebula pool for space "${space}":`, err);
+    }
+  }
+  pools.clear();
+}
+
 export async function runNebulaQuery(query) {
   const raw = Array.isArray(query) ? query.join('\n') : query;
 
@@ -117,10 +131,12 @@ export async function runNebulaQuery(query) {
   const space = detectSpace(raw);
   const client = getClient(space);
 
+  // Split by ';' so multiline nGQL queries are sent as a single statement.
+  // USE <space> lines are stripped (they have no trailing ';' after split).
   const statements = raw
-    .split('\n')
+    .split(';')
     .map((s) => s.trim())
-    .filter((s) => s && !/^USE\s+\w+\s*;$/i.test(s));
+    .filter((s) => s && !/^USE\s+\w+\s*$/i.test(s));
 
   const outputs = [];
   for (const stmt of statements) {
