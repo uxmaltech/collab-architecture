@@ -8,7 +8,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
-import { INDEX_VERSION } from '../config.mjs';
+import { INDEX_VERSION, TECHNICAL_SCOPES } from '../config.mjs';
 import { chunkText } from '../lib/text.mjs';
 import { getEmbeddingDriver } from '../lib/embeddings/index.mjs';
 import { resolveVectorCollections } from '../lib/context-router.mjs';
@@ -16,12 +16,13 @@ import { ensureCollection, qdrantDeleteByFilter, qdrantUpsert } from '../lib/qdr
 import { normalizePointId } from '../lib/hashing.mjs';
 
 const ROOT = process.cwd();
+const DEFAULT_TECH_SCOPE = Object.keys(TECHNICAL_SCOPES)[0] || 'uxmaltech';
 
 const TECH_SOURCES = [
   {
     file: 'docs/core-packages.md',
     context: 'technical',
-    scope: 'uxmaltech',
+    scope: DEFAULT_TECH_SCOPE,
     organization: 'uxmaltech',
     repo: 'uxmaltech/multi',
     package: 'uxmal-packages',
@@ -30,7 +31,7 @@ const TECH_SOURCES = [
   {
     file: 'docs/uxmal-architecture.md',
     context: 'technical',
-    scope: 'uxmaltech',
+    scope: DEFAULT_TECH_SCOPE,
     organization: 'uxmaltech',
     repo: 'uxmaltech/uxmal-site',
     package: 'uxmal-site',

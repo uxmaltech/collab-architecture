@@ -85,17 +85,17 @@ ingest-github: install
 		echo "MODE is required (full|delta)."; \
 		exit 1; \
 	fi
-	@cmd="npm run ingest:github --"; \
+	@set --; \
 	for repo in $$(echo "$(REPOS)" | tr ',' ' '); do \
-		cmd="$$cmd --repo $$repo"; \
+		set -- "$$@" --repo "$$repo"; \
 	done; \
-	cmd="$$cmd --context $(CONTEXT) --scope $(SCOPE) --mode $(MODE)"; \
-	if [ -n "$(BRANCH)" ]; then cmd="$$cmd --branch $(BRANCH)"; fi; \
-	if [ -n "$(INCLUDE_EXT)" ]; then cmd="$$cmd --include-ext $(INCLUDE_EXT)"; fi; \
-	if [ -n "$(FROM_SHA)" ]; then cmd="$$cmd --from-sha $(FROM_SHA)"; fi; \
-	if [ "$(DRY_RUN)" = "true" ]; then cmd="$$cmd --dry-run"; fi; \
-	if [ -n "$(DEBUG)" ]; then cmd="$$cmd --debug $(DEBUG)"; fi; \
-	if [ "$(SKIP_EMBED_CONFIRM)" = "true" ]; then cmd="$$cmd --skip-embed-confirm"; fi; \
-	if [ "$(NO_PROGRESS)" = "true" ]; then cmd="$$cmd --no-progress"; fi; \
-	echo "$$cmd"; \
-	$$cmd
+	set -- "$$@" --context "$(CONTEXT)" --scope "$(SCOPE)" --mode "$(MODE)"; \
+	if [ -n "$(BRANCH)" ]; then set -- "$$@" --branch "$(BRANCH)"; fi; \
+	if [ -n "$(INCLUDE_EXT)" ]; then set -- "$$@" --include-ext "$(INCLUDE_EXT)"; fi; \
+	if [ -n "$(FROM_SHA)" ]; then set -- "$$@" --from-sha "$(FROM_SHA)"; fi; \
+	if [ "$(DRY_RUN)" = "true" ]; then set -- "$$@" --dry-run; fi; \
+	if [ -n "$(DEBUG)" ]; then set -- "$$@" --debug "$(DEBUG)"; fi; \
+	if [ "$(SKIP_EMBED_CONFIRM)" = "true" ]; then set -- "$$@" --skip-embed-confirm; fi; \
+	if [ "$(NO_PROGRESS)" = "true" ]; then set -- "$$@" --no-progress; fi; \
+	echo "npm run ingest:github -- $$*"; \
+	npm run ingest:github -- "$$@"

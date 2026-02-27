@@ -20,6 +20,10 @@ import {
 } from '../config.mjs';
 import { runNebulaQuery } from '../lib/nebula.mjs';
 
+function resolveEmbeddingModel() {
+  return EMBED_PROVIDER === 'deterministic' ? 'deterministic-hash' : GEMINI_EMBED_MODEL;
+}
+
 /**
  * Register all MCP resources on the given server instance.
  */
@@ -60,7 +64,7 @@ export function registerAllResources(server) {
               },
               embeddings: {
                 provider: EMBED_PROVIDER,
-                model: GEMINI_EMBED_MODEL,
+                model: resolveEmbeddingModel(),
                 dim: EMBED_DIM
               },
               index: {

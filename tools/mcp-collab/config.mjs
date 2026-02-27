@@ -47,11 +47,23 @@ export const BUSINESS_COLLECTION = process.env.BUSINESS_COLLECTION || 'business-
 // V2 technical scopes (env-driven, extensible)
 // MCP_TECHNICAL_SCOPES: comma-separated scope names (default: uxmaltech)
 // Each scope resolves to env QDRANT_COLLECTION_TECHNICAL_{SCOPE_UPPER} or defaults to technical-{scope}
-const rawTechnicalScopes = (process.env.MCP_TECHNICAL_SCOPES || 'uxmaltech')
-  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+const RESERVED_TECHNICAL_SCOPES = new Set(['global', 'business']);
+const configuredTechnicalScopes = (process.env.MCP_TECHNICAL_SCOPES || 'uxmaltech')
+  .split(',')
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
+
+const rawTechnicalScopes = configuredTechnicalScopes.filter((scope) => !RESERVED_TECHNICAL_SCOPES.has(scope));
+if (configuredTechnicalScopes.length !== rawTechnicalScopes.length) {
+  console.warn('WARN: Ignoring reserved technical scopes in MCP_TECHNICAL_SCOPES: global, business.');
+}
+if (!rawTechnicalScopes.length) {
+  rawTechnicalScopes.push('uxmaltech');
+  console.warn('WARN: No valid technical scopes configured; falling back to "uxmaltech".');
+}
 
 export const TECHNICAL_SCOPES = Object.fromEntries(
-  rawTechnicalScopes.map(scope => {
+  rawTechnicalScopes.map((scope) => {
     const envKey = `QDRANT_COLLECTION_TECHNICAL_${scope.toUpperCase()}`;
     const collection = process.env[envKey] || `technical-${scope}`;
     return [scope, collection];

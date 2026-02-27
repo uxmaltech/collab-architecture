@@ -1,6 +1,6 @@
 {
   "name": "mcp-collab-architecture",
-  "version": "0.3.0",
+  "version": "0.3.3",
   "type": "module",
   "private": true,
   "description": "MCP server for Collab Architecture graph and vector queries",

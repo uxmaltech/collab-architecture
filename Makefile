@@ -67,10 +67,13 @@ nebula-down:
 	@NEBULA_VERSION=$(NEBULA_VERSION) docker compose -p $(NEBULA_PROJECT) -f $(NEBULA_COMPOSE) down -v
 
 wait-qdrant:
-	@CURL_OPTS=""; \
-	if [ -n "$(QDRANT_API_KEY)" ]; then CURL_OPTS="-H 'api-key: $(QDRANT_API_KEY)'"; fi; \
-	i=0; \
-	until eval curl -sf $$CURL_OPTS $(QDRANT_URL)/collections >/dev/null 2>&1; do \
+	@i=0; \
+	while true; do \
+		if [ -n "$(QDRANT_API_KEY)" ]; then \
+			curl -sf -H "api-key: $(QDRANT_API_KEY)" "$(QDRANT_URL)/collections" >/dev/null 2>&1 && break; \
+		else \
+			curl -sf "$(QDRANT_URL)/collections" >/dev/null 2>&1 && break; \
+		fi; \
 		i=$$((i+1)); \
 		if [ $$i -ge 30 ]; then echo "Qdrant not ready"; exit 1; fi; \
 		sleep 1; \
@@ -200,9 +203,11 @@ seed:
 
 reset-embeddings: wait-qdrant
 	@echo "Resetting Qdrant collection: $(QDRANT_COLLECTION)"
-	@CURL_OPTS=""; \
-	if [ -n "$(QDRANT_API_KEY)" ]; then CURL_OPTS="-H 'api-key: $(QDRANT_API_KEY)'"; fi; \
-	eval curl -sf -X DELETE $$CURL_OPTS $(QDRANT_URL)/collections/$(QDRANT_COLLECTION) >/dev/null 2>&1 || true; \
+	@if [ -n "$(QDRANT_API_KEY)" ]; then \
+		curl -sf -X DELETE -H "api-key: $(QDRANT_API_KEY)" "$(QDRANT_URL)/collections/$(QDRANT_COLLECTION)" >/dev/null 2>&1 || true; \
+	else \
+		curl -sf -X DELETE "$(QDRANT_URL)/collections/$(QDRANT_COLLECTION)" >/dev/null 2>&1 || true; \
+	fi; \
 	echo "Collection $(QDRANT_COLLECTION) deleted (or did not exist)"
 
 reset-graph:

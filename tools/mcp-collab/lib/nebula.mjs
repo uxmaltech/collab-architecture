@@ -48,6 +48,38 @@ function detectSpace(query) {
 }
 
 /**
+ * Split nGQL statements by semicolon, ignoring semicolons inside quoted strings.
+ */
+function splitStatements(raw) {
+  const input = String(raw || '');
+  const statements = [];
+  let current = '';
+  let inString = false;
+
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input[i];
+    if (ch === '"' && input[i - 1] !== '\\') {
+      inString = !inString;
+      current += ch;
+      continue;
+    }
+
+    if (ch === ';' && !inString) {
+      const stmt = current.trim();
+      if (stmt) statements.push(stmt);
+      current = '';
+      continue;
+    }
+
+    current += ch;
+  }
+
+  const tail = current.trim();
+  if (tail) statements.push(tail);
+  return statements;
+}
+
+/**
  * Convert the SDK's columnar result ({ data: { Col: [v1,v2], ... } })
  * into a row-oriented array ([{ Col: v1 }, { Col: v2 }, ...]) that is
  * easier for a language model to read and reason about.
@@ -133,9 +165,7 @@ export async function runNebulaQuery(query) {
 
   // Split by ';' so multiline nGQL queries are sent as a single statement.
   // USE <space> lines are stripped (they have no trailing ';' after split).
-  const statements = raw
-    .split(';')
-    .map((s) => s.trim())
+  const statements = splitStatements(raw)
     .filter((s) => s && !/^USE\s+\w+\s*$/i.test(s));
 
   const outputs = [];

@@ -6,7 +6,7 @@ import * as z from 'zod';
 import { INDEX_VERSION } from '../config.mjs';
 import { getEmbeddingDriver } from '../lib/embeddings/index.mjs';
 import { qdrantSearchByVector } from '../lib/qdrant.mjs';
-import { SCOPES, resolveVectorCollections } from '../lib/context-router.mjs';
+import { resolveVectorCollections } from '../lib/context-router.mjs';
 
 const ANNOTATIONS = {
   readOnlyHint: true,
@@ -80,7 +80,7 @@ export function register(server) {
       description: 'Search V2 context collections using configurable embedding providers.',
       inputSchema: {
         context: z.enum(['technical', 'business']).describe('Context to search.'),
-        scope: z.enum(SCOPES).optional().describe('Scope within context.'),
+        scope: z.string().optional().describe('Optional scope within context (validated at runtime).'),
         query: z.string().min(1).describe('Search text.'),
         limit: z.number().int().min(1).max(50).optional().describe('Max results, default 8.'),
         filters: z.any().optional().describe('Optional additional Qdrant filter object.')

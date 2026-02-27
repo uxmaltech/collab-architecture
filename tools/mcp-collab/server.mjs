@@ -38,7 +38,7 @@ import { registerAllPrompts } from './prompts/index.mjs';
 
 function createMcpServer() {
   const server = new McpServer(
-    { name: 'collab-architecture-mcp', version: '0.3.0' },
+    { name: 'collab-architecture-mcp', version: '0.3.3' },
     { capabilities: { logging: {} } }
   );
   registerAllTools(server);
@@ -97,9 +97,11 @@ const app = createMcpExpressApp({
   // add allowedHosts: ['your-domain.com'] for DNS rebinding protection
 });
 
-// Note: createMcpExpressApp already applies express.json() (default limit).
-// We add a second parser with a 2 MB limit for large business rule payloads.
-// Express will use whichever parser matches first; the larger limit takes effect.
+// createMcpExpressApp installs express.json() with default options.
+// Replace it with a 2MB parser so larger payloads are accepted consistently.
+if (app?._router?.stack) {
+  app._router.stack = app._router.stack.filter((layer) => layer?.name !== 'jsonParser');
+}
 app.use(express.json({ limit: '2mb' }));
 
 // --- Health check (unauthenticated) ---
