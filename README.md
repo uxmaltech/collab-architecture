@@ -24,3 +24,62 @@ Repository layout:
 - prompts/ provides authoritative prompts for Codex and Collab agents.
 - evolution/ records how the canon changes over time.
 - governance/ defines how knowledge enters, is reviewed, and gains confidence.
+- tools/mcp-collab/ is the MCP server that exposes graph and vector tools to AI agents.
+
+## MCP Server
+
+The MCP server lives in `tools/mcp-collab/`. It exposes architecture and business context as tools, resources, and prompts for AI agents via the [Model Context Protocol](https://modelcontextprotocol.io/).
+
+### Quick start
+
+```bash
+cp .env.example .env    # create local config (defaults work for dev)
+make tools-up           # start databases + MCP server (background)
+make tools-dev          # alternative: foreground with auto-reload
+make ingest-v2          # ingest V2 vector data into scoped Qdrant collections
+make ingest-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech MODE=full
+make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech
+# Use SKIP_EMBED_CONFIRM=true only for non-interactive automation
+# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech SKIP_EMBED_CONFIRM=true
+# Add DEBUG=excluded|included to print file lists before processing
+# make update-github REPOS=uxmaltech/core CONTEXT=technical SCOPE=uxmaltech DEBUG=excluded
+```
+
+Endpoint: `http://127.0.0.1:7337/mcp`
+
+### Environment variables
+
+All configuration lives in `.env` (git-ignored). Copy `.env.example` to get started.
+
+Key variables:
+
+| Variable | Required | Description |
+|---|---|---|
+| `MCP_ENV` | Yes | Set to `local` for development (no auth). Omit or set to another value in production to require API keys. |
+| `MCP_API_KEYS` | Production | API keys in format `clientId1:key1,clientId2:key2`. When set, all `/mcp` endpoints require `Authorization: Bearer <key>`. |
+| `MCP_HOST` | No | Bind address (default: `127.0.0.1`) |
+| `MCP_PORT` | No | Listen port (default: `7337`) |
+| `GITHUB_TOKEN` | For `ingest:github` | Token with read access to target repos for temporary clone and local git diff ingestion. |
+| `EMBED_PRICE_PER_1M_TOKENS` | No | Optional USD estimator for embedding cost reports in GitHub ingestion runs. |
+| `QDRANT_COLLECTION_INGEST_CURSORS` | No | Qdrant collection used to persist incremental GitHub ingestion cursors. |
+
+**Safety rule:** the server refuses to start if both `MCP_API_KEYS` is empty and `MCP_ENV` is not `local`. This prevents accidental unauthenticated deployments.
+
+```bash
+# Local dev — no auth
+MCP_ENV=local
+
+# Production — with auth
+MCP_ENV=production
+MCP_API_KEYS=codex:my-secret-key,claude:another-key
+```
+
+See [tools/mcp-collab/README.md](tools/mcp-collab/README.md) for full documentation on tools, resources, prompts, session lifecycle, and architecture.
+
+### V2 MCP defaults
+
+- V2 tools enabled by default:
+  - `context.scopes.list.v2`
+  - `context.vector.search.v2`
+  - `context.graph.degree.search.v2`
+- Legacy V1 tools are opt-in with `ENABLE_V1_TOOLS=true`.

@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333").rstrip("/")
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
 COLLECTION = os.getenv("QDRANT_COLLECTION", "collab-architecture-canon")
 VECTOR_SIZE = int(os.getenv("QDRANT_VECTOR_SIZE", "1536"))
 DISTANCE = os.getenv("QDRANT_DISTANCE", "Cosine")
@@ -26,11 +27,14 @@ def http_json(method: str, path: str, body: Optional[Dict[str, Any]] = None) -> 
     data = None
     if body is not None:
         data = json.dumps(body).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if QDRANT_API_KEY:
+        headers["api-key"] = QDRANT_API_KEY
     req = urllib.request.Request(
         f"{QDRANT_URL}{path}",
         data=data,
         method=method,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -90,6 +94,13 @@ def load_payload() -> List[Dict[str, Any]]:
         raise FileNotFoundError(f"Payload not found: {PAYLOAD_PATH}")
     return json.loads(PAYLOAD_PATH.read_text(encoding="utf-8"))
 
+def delete_payload_file() -> None:
+    try:
+        PAYLOAD_PATH.unlink(missing_ok=True)
+    except Exception as exc:
+        # Non-fatal cleanup warning; ingestion already succeeded.
+        print(f"Warning: failed to delete payload file {PAYLOAD_PATH}: {exc}")
+
 
 def upsert_points(points: List[Dict[str, Any]]) -> None:
     body = {"points": points}
@@ -107,6 +118,7 @@ def main() -> int:
     total = len(payload)
     if total == 0:
         print("No points to upsert.")
+        delete_payload_file()
         return 0
 
     for start in range(0, total, BATCH_SIZE):
@@ -121,6 +133,7 @@ def main() -> int:
         upsert_points(points)
         print(f"Upserted {min(start + BATCH_SIZE, total)} / {total}")
 
+    delete_payload_file()
     return 0
 
 

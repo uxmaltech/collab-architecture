@@ -23,6 +23,9 @@ Requires Docker and Python 3.
 - `make tools-up` starts databases plus the local MCP server for technical and business context tools.
 - `make tools-down` stops the MCP server started by `make tools-up`.
 - `make tools-config` writes MCP client config to `~/.codex/config.toml` (prompts before overwrite).
+- `make ingest-v2` ingests V2 vector data from `tools/mcp-collab/docs/*.md` into scoped Qdrant collections.
+- `make ingest-github` ingests GitHub repository content into a scoped V2 collection (`MODE=full|delta`).
+- `make update-github` convenience alias for incremental GitHub ingestion (`MODE=delta`).
 - Example Codex config snippet lives at `tools/mcp-collab/codex-config.example.toml`.
 - `make logs-qdrant` / `make logs-nebula` stream container logs.
 
@@ -33,8 +36,24 @@ This repo has a deliberate separation between bootstrap and update flows. Avoid 
 - `graph/seed/seed.ngql` is a standalone, all-in-one script (schema + data) intended for manual full resets. It is not used by `make update`.
 
 ## MCP Contexts
-- Technical canon tools: `architecture.graph.query` and `architecture.vector.search` (aliases: `graph.query`, `vector.search`). Uses space `collab_architecture` and collection `collab-architecture-canon`.
-- Business context tools: `business.graph.query`, `business.vector.search`, and `business.rule` (ingests Markdown). Uses space `business_architecture` and collection `business-architecture-canon`.
+- V2 tools (default): `context.scopes.list.v2`, `context.vector.search.v2`, `context.graph.degree.search.v2`.
+- V2 Qdrant collections follow the pattern `technical-{scope}` (one per technical scope) plus `business-rules`.
+- V2 Nebula spaces:
+  - `technical_architecture`
+  - `business_architecture`
+- Scopes are configured in `context-router.mjs`. Use `context.scopes.list.v2` to discover available scopes at runtime.
+- Legacy V1 tools: `architecture.*`, `business.*`, `business.rule` are available only with `ENABLE_V1_TOOLS=true`.
+
+## GitHub Ingestion Notes
+- `ingest-github` requires `GITHUB_TOKEN` in `.env`.
+- GitHub ingestion uses temporary local clones and git diff/tree reads (no GitHub compare/tree/blob API path).
+- Optional cost reporting uses `EMBED_PRICE_PER_1M_TOKENS` (USD estimate).
+- Incremental cursors are stored in `QDRANT_COLLECTION_INGEST_CURSORS` (default: `ingest-cursors`).
+- Ingestion writes require explicit non-global scopes (as configured in `context-router.mjs`).
+- Non-dry runs require preflight confirmation by default; use `SKIP_EMBED_CONFIRM=true` (or `--skip-embed-confirm`) only for non-interactive automation.
+- Set `DEBUG=excluded|included` (or `--debug <excluded|included>`) to print file lists before processing.
+- GitHub-ingested chunk payloads include `language`, `content_kind`, `embedding_profile`, `symbol_name`, and `symbol_path` metadata.
+- Symbol extraction uses an extensible AST parser registry (current built-ins: PHP and TS/JS), with safe fallback when parsing fails.
 
 ## Coding Style & Naming Conventions
 - Use `kebab-case` filenames with stable IDs, e.g., `knowledge/axioms/AX-001-authoritative-canon.md`.
