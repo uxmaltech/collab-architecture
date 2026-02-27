@@ -2,6 +2,7 @@
 // Bearer token verifier — implements OAuthTokenVerifier using API keys
 // ---------------------------------------------------------------------------
 
+import crypto from 'node:crypto';
 import { MCP_API_KEYS } from '../config.mjs';
 
 // One year from now, in seconds since epoch — effectively "never expires"
@@ -22,7 +23,12 @@ const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60;
  */
 export const tokenVerifier = {
   async verifyAccessToken(token) {
-    const keyEntry = MCP_API_KEYS.find((k) => k.key === token);
+    const tokenBuf = Buffer.from(String(token));
+    const keyEntry = MCP_API_KEYS.find((k) => {
+      const keyBuf = Buffer.from(k.key);
+      if (keyBuf.length !== tokenBuf.length) return false;
+      return crypto.timingSafeEqual(keyBuf, tokenBuf);
+    });
     if (!keyEntry) {
       const { InvalidTokenError } = await import(
         '@modelcontextprotocol/sdk/server/auth/errors.js'

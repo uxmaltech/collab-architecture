@@ -78,7 +78,7 @@ ingest-github: install
 		exit 1; \
 	fi
 	@if [ -z "$(SCOPE)" ]; then \
-		echo "SCOPE is required (uxmaltech|enviaflores|business)."; \
+		echo "SCOPE is required (e.g. uxmaltech, business — see MCP_TECHNICAL_SCOPES)."; \
 		exit 1; \
 	fi
 	@if [ -z "$(MODE)" ]; then \
@@ -98,4 +98,4 @@ ingest-github: install
 	if [ "$(SKIP_EMBED_CONFIRM)" = "true" ]; then cmd="$$cmd --skip-embed-confirm"; fi; \
 	if [ "$(NO_PROGRESS)" = "true" ]; then cmd="$$cmd --no-progress"; fi; \
 	echo "$$cmd"; \
-	eval "$$cmd"
+	$$cmd
