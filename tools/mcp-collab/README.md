@@ -231,8 +231,8 @@ The implementation uses a custom `simpleBearerAuth` middleware instead of the SD
 | `BUSINESS_COLLECTION` | `business-architecture-canon` | Qdrant collection for business context |
 | `NEBULA_SPACE_TECHNICAL` | `technical_architecture` | V2 technical graph space (single space for cross-repo impact). |
 | `NEBULA_SPACE_BUSINESS` | `business_architecture` | V2 business graph space. |
-| `QDRANT_COLLECTION_TECHNICAL_UXMALTECH` | `technical-uxmaltech` | V2 technical collection for UxmalTech scopes. |
-| `QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES` | `technical-enviaflores` | V2 technical collection for EnviaFlores scopes. |
+| `MCP_TECHNICAL_SCOPES` | `uxmaltech` | Comma-separated scope names. Each maps to `technical-{scope}` collection. |
+| `QDRANT_COLLECTION_TECHNICAL_{SCOPE}` | `technical-{scope}` | Per-scope override (e.g. `QDRANT_COLLECTION_TECHNICAL_UXMALTECH`). |
 | `QDRANT_COLLECTION_BUSINESS` | `business-rules` | V2 business-rules collection. |
 | `QDRANT_COLLECTION_INGEST_CURSORS` | `ingest-cursors` | Qdrant collection used to persist GitHub incremental cursors (`last_processed_sha`). |
 | `QDRANT_URL` | `http://localhost:6333` | Qdrant HTTP endpoint |
@@ -265,7 +265,7 @@ The implementation uses a custom `simpleBearerAuth` middleware instead of the SD
 
 This returns:
 1. Matched chunks across V2 scoped collections
-2. Collection provenance per match (`technical-uxmaltech` / `technical-enviaflores` / `business-rules`)
+2. Collection provenance per match (`technical-{scope}` / `business-rules`)
 3. Embedding metadata (`provider`, `model`, `dim`) and `index_version`
 4. Chunk metadata in `payload` (for GitHub-ingested content): `language`, `content_kind`, `embedding_profile`, `symbol_name`, `symbol_path`
 
@@ -296,9 +296,9 @@ npm run ingest:github -- \
 
 # Dry-run with custom extensions and no progress rendering
 npm run ingest:github -- \
-  --repo enviaflores/ef-storefront-backend \
+  --repo acme/storefront-api \
   --context technical \
-  --scope enviaflores \
+  --scope acme \
   --mode delta \
   --include-ext md,ts,js,php \
   --dry-run \

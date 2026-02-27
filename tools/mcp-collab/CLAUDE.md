@@ -8,7 +8,7 @@ It exposes technical and business context through tools, resources, and prompts 
 ### Module structure
 
 ```
-server.mjs          → Entrypoint only. Express app, session routing, auth.
+server.mjs          → Entrypoint. Express app, session management, auth.
 config.mjs          → All env vars. Single source of truth.
 auth/               → Authentication.
 lib/                → Pure utilities (no MCP imports).
@@ -53,10 +53,18 @@ Use `lib/embeddings/index.mjs` to resolve the driver. Do not call provider APIs 
 `runNebulaQuery` routes by `USE <space>;` and executes statements against the corresponding pooled client.
 Always include an explicit `USE <space>;` in tool queries.
 
+### Scope configuration
+
+Technical scopes are env-driven via `MCP_TECHNICAL_SCOPES` (comma-separated, default `uxmaltech`).
+Each scope auto-maps to Qdrant collection `technical-{scope}`, overridable by `QDRANT_COLLECTION_TECHNICAL_{SCOPE_UPPER}`.
+The `TECHNICAL_SCOPES` map in `config.mjs` is consumed by `context-router.mjs` to build the scope catalog, and by tool schemas to build the valid `scope` enum.
+Adding a new technical scope requires only an env var change — zero code changes.
+
 ### Config discipline
 
 - Read env vars only in `config.mjs`.
 - Do not use `process.env` outside `config.mjs`.
+- Do not hardcode scope names in tool schemas — import `SCOPES` from `context-router.mjs`.
 
 ### Annotations matter
 
@@ -66,10 +74,9 @@ Always set tool annotations:
 - `idempotentHint`
 - `openWorldHint`
 
-### Session/transport architecture
+### Transport
 
-Each MCP client session gets its own `StreamableHTTPServerTransport` + `McpServer` pair.
-Do not introduce shared transport state across sessions.
+The server uses HTTP (Express) with per-session `StreamableHTTPServerTransport` + `McpServer` pairs. Auth applies when `MCP_API_KEYS` is set. Do not introduce shared transport state across sessions.
 
 ### Ingestion workflow (V2)
 

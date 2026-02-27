@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.3.3] — 2026-02-26
+
+Env-driven scope discovery, PR #4 review fixes, and full enviaflores decoupling.
+
+### Added
+
+- **`docs/examples/client-architecture-example.md`** — agnostic example of a client organization architecture document, replacing the removed enviaflores-specific doc.
+- **`MCP_TECHNICAL_SCOPES`** — new env var (comma-separated scope names, default `uxmaltech`). Each scope auto-maps to Qdrant collection `technical-{scope}`, overridable via `QDRANT_COLLECTION_TECHNICAL_{SCOPE_UPPER}`. Adding a new technical scope now requires zero code changes.
+
+### Changed
+
+- **`config.mjs`** — replaced hardcoded `QDRANT_COLLECTION_TECHNICAL_UXMALTECH` / `QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES` with dynamic `TECHNICAL_SCOPES` map built from `MCP_TECHNICAL_SCOPES` env var.
+- **`lib/context-router.mjs`** — `SCOPES`, `getScopeCatalog()`, and collection routing now derived dynamically from `TECHNICAL_SCOPES` instead of hardcoded arrays.
+- **V2 tool schemas** (`context-vector-search-v2`, `context-graph-degree-search-v2`) — `scope` enum now imports `SCOPES` from context-router instead of hardcoded values.
+- **`resources/index.mjs`** — config summary exposes `TECHNICAL_SCOPES` map instead of individual collection constants.
+- **`scripts/ingest-v2.mjs`** — added delete-before-upsert (`qdrantDeleteByFilter` by `source_path/context/scope`) to prevent stale chunks when a document shrinks between ingestion runs. Removed `enviaflores-architecture.md` from `TECH_SOURCES`.
+- **`tools/mcp-collab/Makefile`** — replaced `eval "$$cmd"` with direct `$$cmd` in `ingest-github` target to prevent command injection surface.
+- **`ADR-003`** (both EN and ES) — replaced hardcoded `technical-enviaflores` with generic `technical-{scope}` pattern and N+1 rationale.
+
+### Removed
+
+- **`docs/enviaflores-architecture.md`** — deleted; client-specific docs now live as agnostic examples under `docs/examples/`.
+- **`QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES`** — removed from config, .env.example, and all code references. To re-enable enviaflores, add it to `MCP_TECHNICAL_SCOPES`.
+
 ## [0.3.2] — 2026-02-24
 
 Incremental GitHub ingestion for V2 collections, with per-repo counting, estimated embedding cost, and repository progress rendering.

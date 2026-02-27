@@ -12,16 +12,15 @@ Decision:
   - `context.vector.search.v2`
   - `context.graph.degree.search.v2`
 - Organize Qdrant by technical scope + business domain:
-  - `technical-uxmaltech`
-  - `technical-enviaflores`
+  - `technical-{scope}` (one collection per scope defined in `MCP_TECHNICAL_SCOPES`)
   - `business-rules`
 - Organize Nebula by context:
   - `technical_architecture`
   - `business_architecture`
 
 Rationale:
-- Why **3 Qdrant collections**:
-  - Technical vectors are partitioned by scope (`uxmaltech`, `enviaflores`) to keep retrieval precise, reduce noisy cross-scope similarity, and allow independent reindex/ops per scope.
+- Why **N+1 Qdrant collections** (N technical scopes + 1 business):
+  - Technical vectors are partitioned by scope (one `technical-{scope}` collection per entry in `MCP_TECHNICAL_SCOPES`) to keep retrieval precise, reduce noisy cross-scope similarity, and allow independent reindex/ops per scope.
   - Business vectors are isolated in `business-rules` because they follow a different semantic intent and query profile than technical codebase chunks.
 - Why **2 Nebula spaces**:
   - Graph traversal benefits from one unified technical graph (`technical_architecture`) so cross-repo and cross-scope technical dependencies remain connected in the same topology.
@@ -33,8 +32,8 @@ flowchart LR
   C --> T2["context.vector.search.v2"]
   C --> T3["context.graph.degree.search.v2"]
 
-  T2 --> Q1["Qdrant: technical-uxmaltech"]
-  T2 --> Q2["Qdrant: technical-enviaflores"]
+  T2 --> Q1["Qdrant: technical-{scope-A}"]
+  T2 --> Q2["Qdrant: technical-{scope-B}"]
   T2 --> Q3["Qdrant: business-rules"]
 
   T3 --> N1["Nebula: technical_architecture"]

@@ -11,17 +11,17 @@ Las tools V2 deben consultar arquitectura por contexto/scope sin mezclar datos t
   - `context.scopes.list.v2`
   - `context.vector.search.v2`
   - `context.graph.degree.search.v2`
-- Organizar Qdrant por scope técnico + dominio de negocio:
-  - `technical-uxmaltech`
-  - `technical-enviaflores`
+- Organizar Qdrant por scope técnico + dominio de negocio siguiendo el patrón `technical-{scope}`:
+  - `technical-{scope}` — una colección por cada scope técnico registrado (ej. `technical-uxmaltech`)
   - `business-rules`
 - Organizar Nebula por contexto:
   - `technical_architecture`
   - `business_architecture`
 
 ## Rationale
-- **Por qué 3 colecciones en Qdrant**:
+- **Por qué N+1 colecciones en Qdrant**:
   - Separar técnico por scope mejora precisión semántica y reduce ruido entre organizaciones/scopes.
+  - El número de colecciones `technical-{scope}` escala con los scopes configurados; no está hardcodeado a un cliente específico.
   - `business-rules` se separa porque su intención de consulta y semántica no es la misma que la del codebase técnico.
 - **Por qué 2 espacios en Nebula**:
   - Un solo espacio técnico conserva dependencias cruzadas entre repos/scopes en un mismo grafo.
@@ -34,8 +34,8 @@ flowchart LR
   C --> T2["context.vector.search.v2"]
   C --> T3["context.graph.degree.search.v2"]
 
-  T2 --> Q1["Qdrant: technical-uxmaltech"]
-  T2 --> Q2["Qdrant: technical-enviaflores"]
+  T2 --> Q1["Qdrant: technical-{scope-A}"]
+  T2 --> Q2["Qdrant: technical-{scope-B}"]
   T2 --> Q3["Qdrant: business-rules"]
 
   T3 --> N1["Nebula: technical_architecture"]

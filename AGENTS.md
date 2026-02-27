@@ -37,13 +37,11 @@ This repo has a deliberate separation between bootstrap and update flows. Avoid 
 
 ## MCP Contexts
 - V2 tools (default): `context.scopes.list.v2`, `context.vector.search.v2`, `context.graph.degree.search.v2`.
-- V2 Qdrant collections:
-  - `technical-uxmaltech`
-  - `technical-enviaflores`
-  - `business-rules`
+- V2 Qdrant collections follow the pattern `technical-{scope}` (one per technical scope) plus `business-rules`.
 - V2 Nebula spaces:
   - `technical_architecture`
   - `business_architecture`
+- Scopes are configured in `context-router.mjs`. Use `context.scopes.list.v2` to discover available scopes at runtime.
 - Legacy V1 tools: `architecture.*`, `business.*`, `business.rule` are available only with `ENABLE_V1_TOOLS=true`.
 
 ## GitHub Ingestion Notes
@@ -51,7 +49,7 @@ This repo has a deliberate separation between bootstrap and update flows. Avoid 
 - GitHub ingestion uses temporary local clones and git diff/tree reads (no GitHub compare/tree/blob API path).
 - Optional cost reporting uses `EMBED_PRICE_PER_1M_TOKENS` (USD estimate).
 - Incremental cursors are stored in `QDRANT_COLLECTION_INGEST_CURSORS` (default: `ingest-cursors`).
-- Ingestion writes require explicit non-global scopes (`uxmaltech`, `enviaflores`, or `business`).
+- Ingestion writes require explicit non-global scopes (as configured in `context-router.mjs`).
 - Non-dry runs require preflight confirmation by default; use `SKIP_EMBED_CONFIRM=true` (or `--skip-embed-confirm`) only for non-interactive automation.
 - Set `DEBUG=excluded|included` (or `--debug <excluded|included>`) to print file lists before processing.
 - GitHub-ingested chunk payloads include `language`, `content_kind`, `embedding_profile`, `symbol_name`, and `symbol_path` metadata.
