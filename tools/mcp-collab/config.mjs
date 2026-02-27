@@ -44,11 +44,21 @@ export const VECTOR_SIZE = EMBED_DIM;
 export const ARCH_COLLECTION = process.env.ARCH_COLLECTION || process.env.QDRANT_COLLECTION || 'collab-architecture-canon';
 export const BUSINESS_COLLECTION = process.env.BUSINESS_COLLECTION || 'business-architecture-canon';
 
+// V2 technical scopes (env-driven, extensible)
+// MCP_TECHNICAL_SCOPES: comma-separated scope names (default: uxmaltech)
+// Each scope resolves to env QDRANT_COLLECTION_TECHNICAL_{SCOPE_UPPER} or defaults to technical-{scope}
+const rawTechnicalScopes = (process.env.MCP_TECHNICAL_SCOPES || 'uxmaltech')
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+export const TECHNICAL_SCOPES = Object.fromEntries(
+  rawTechnicalScopes.map(scope => {
+    const envKey = `QDRANT_COLLECTION_TECHNICAL_${scope.toUpperCase()}`;
+    const collection = process.env[envKey] || `technical-${scope}`;
+    return [scope, collection];
+  })
+);
+
 // V2 collections
-export const QDRANT_COLLECTION_TECHNICAL_UXMALTECH =
-  process.env.QDRANT_COLLECTION_TECHNICAL_UXMALTECH || 'technical-uxmaltech';
-export const QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES =
-  process.env.QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES || 'technical-enviaflores';
 export const QDRANT_COLLECTION_BUSINESS = process.env.QDRANT_COLLECTION_BUSINESS || 'business-rules';
 
 export const NEBULA_CONSOLE_IMAGE = process.env.NEBULA_CONSOLE_IMAGE || 'vesoft/nebula-console:v3.6.0';

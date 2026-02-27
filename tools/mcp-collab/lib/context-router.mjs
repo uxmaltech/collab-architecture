@@ -3,30 +3,35 @@
 // ---------------------------------------------------------------------------
 
 import {
-  QDRANT_COLLECTION_TECHNICAL_UXMALTECH,
-  QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES,
+  TECHNICAL_SCOPES,
   QDRANT_COLLECTION_BUSINESS,
   NEBULA_SPACE_TECHNICAL,
   NEBULA_SPACE_BUSINESS
 } from '../config.mjs';
 
+const technicalScopeNames = Object.keys(TECHNICAL_SCOPES);
+
 export const CONTEXTS = /** @type {const} */ (['technical', 'business']);
-export const SCOPES = /** @type {const} */ (['uxmaltech', 'enviaflores', 'business', 'global']);
+export const SCOPES = /** @type {const} */ ([...technicalScopeNames, 'business', 'global']);
 
 function normalize(value, fallback = '') {
   return String(value ?? fallback).trim().toLowerCase();
 }
 
 export function getScopeCatalog() {
+  // Build technical collections map from env-driven TECHNICAL_SCOPES
+  const technicalCollections = {};
+  for (const [scope, collection] of Object.entries(TECHNICAL_SCOPES)) {
+    technicalCollections[scope] = [collection];
+  }
+  // global = search across all technical collections
+  technicalCollections.global = Object.values(TECHNICAL_SCOPES);
+
   return {
     contexts: {
       technical: {
-        scopes: ['uxmaltech', 'enviaflores', 'global'],
-        collections: {
-          uxmaltech: [QDRANT_COLLECTION_TECHNICAL_UXMALTECH],
-          enviaflores: [QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES],
-          global: [QDRANT_COLLECTION_TECHNICAL_UXMALTECH, QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES]
-        },
+        scopes: [...technicalScopeNames, 'global'],
+        collections: technicalCollections,
         space: NEBULA_SPACE_TECHNICAL
       },
       business: {

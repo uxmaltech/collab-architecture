@@ -9,8 +9,7 @@ import {
   BUSINESS_COLLECTION,
   NEBULA_SPACE_TECHNICAL,
   NEBULA_SPACE_BUSINESS,
-  QDRANT_COLLECTION_TECHNICAL_UXMALTECH,
-  QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES,
+  TECHNICAL_SCOPES,
   QDRANT_COLLECTION_BUSINESS,
   EMBED_PROVIDER,
   EMBED_DIM,
@@ -47,8 +46,7 @@ export function registerAllResources(server) {
                 collections: {
                   architecture: ARCH_COLLECTION,
                   business: BUSINESS_COLLECTION,
-                  technicalUxmaltechV2: QDRANT_COLLECTION_TECHNICAL_UXMALTECH,
-                  technicalEnviafloresV2: QDRANT_COLLECTION_TECHNICAL_ENVIAFLORES,
+                  technicalV2: TECHNICAL_SCOPES,
                   businessV2: QDRANT_COLLECTION_BUSINESS
                 }
               },

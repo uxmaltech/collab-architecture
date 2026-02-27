@@ -6,7 +6,7 @@ import * as z from 'zod';
 import { INDEX_VERSION } from '../config.mjs';
 import { getEmbeddingDriver } from '../lib/embeddings/index.mjs';
 import { qdrantSearchByVector } from '../lib/qdrant.mjs';
-import { resolveVectorCollections } from '../lib/context-router.mjs';
+import { SCOPES, resolveVectorCollections } from '../lib/context-router.mjs';
 
 const ANNOTATIONS = {
   readOnlyHint: true,
@@ -80,7 +80,7 @@ export function register(server) {
       description: 'Search V2 context collections using configurable embedding providers.',
       inputSchema: {
         context: z.enum(['technical', 'business']).describe('Context to search.'),
-        scope: z.enum(['uxmaltech', 'enviaflores', 'business', 'global']).optional().describe('Scope within context.'),
+        scope: z.enum(SCOPES).optional().describe('Scope within context.'),
         query: z.string().min(1).describe('Search text.'),
         limit: z.number().int().min(1).max(50).optional().describe('Max results, default 8.'),
         filters: z.any().optional().describe('Optional additional Qdrant filter object.')
@@ -95,7 +95,7 @@ export function register(server) {
       const filter = mergeFilters(baseFilter, filters || null);
 
       const perCollectionLimit = Math.min(Math.max(limit, 1), 50);
-      const resultsByCollection = await Promise.all(
+      const settled = await Promise.allSettled(
         resolved.collections.map(async (collection) => {
           const rows = await qdrantSearchByVector({
             collection,
@@ -106,6 +106,16 @@ export function register(server) {
           return rows.map((hit) => normalizeMatch(hit, collection));
         })
       );
+
+      const errors = [];
+      const resultsByCollection = [];
+      for (const result of settled) {
+        if (result.status === 'fulfilled') {
+          resultsByCollection.push(result.value);
+        } else {
+          errors.push(result.reason?.message || String(result.reason));
+        }
+      }
 
       const matches = resultsByCollection
         .flat()
@@ -119,7 +129,8 @@ export function register(server) {
         context: resolved.context,
         scope: resolved.scope,
         collections_queried: resolved.collections,
-        matches
+        matches,
+        ...(errors.length > 0 && { partial_errors: errors })
       };
 
       return {

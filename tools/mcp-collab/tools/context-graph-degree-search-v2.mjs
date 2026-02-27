@@ -5,7 +5,7 @@
 import * as z from 'zod';
 import { INDEX_VERSION } from '../config.mjs';
 import { escapeNebula, runNebulaQuery } from '../lib/nebula.mjs';
-import { resolveContextScope, resolveGraphSpace } from '../lib/context-router.mjs';
+import { SCOPES, resolveContextScope, resolveGraphSpace } from '../lib/context-router.mjs';
 
 const ANNOTATIONS = {
   readOnlyHint: true,
@@ -142,7 +142,7 @@ export function register(server) {
         direction: z.enum(['out', 'in', 'both']).optional().describe('Traversal direction, default both.'),
         edge_types: z.array(z.string()).optional().describe('Optional edge type filter.'),
         node_types: z.array(z.string()).optional().describe('Optional neighbor node_type filter.'),
-        scope: z.enum(['uxmaltech', 'enviaflores', 'business', 'global']).optional().describe('Optional scope filter.'),
+        scope: z.enum(SCOPES).optional().describe('Optional scope filter.'),
         max_nodes_per_hop: z.number().int().min(1).max(200).optional().describe('Max new nodes per hop, default 50.')
       },
       annotations: ANNOTATIONS

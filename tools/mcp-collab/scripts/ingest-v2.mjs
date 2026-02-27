@@ -12,7 +12,7 @@ import { INDEX_VERSION } from '../config.mjs';
 import { chunkText } from '../lib/text.mjs';
 import { getEmbeddingDriver } from '../lib/embeddings/index.mjs';
 import { resolveVectorCollections } from '../lib/context-router.mjs';
-import { ensureCollection, qdrantUpsert } from '../lib/qdrant.mjs';
+import { ensureCollection, qdrantDeleteByFilter, qdrantUpsert } from '../lib/qdrant.mjs';
 import { normalizePointId } from '../lib/hashing.mjs';
 
 const ROOT = process.cwd();
@@ -36,15 +36,6 @@ const TECH_SOURCES = [
     package: 'uxmal-site',
     domain: 'uxmal-architecture'
   },
-  {
-    file: 'docs/enviaflores-architecture.md',
-    context: 'technical',
-    scope: 'enviaflores',
-    organization: 'enviaflores',
-    repo: 'enviaflores/multi',
-    package: 'enviaflores-contexts',
-    domain: 'enviaflores-architecture'
-  }
 ];
 
 function today() {
@@ -155,6 +146,20 @@ async function ingestSource(source, driver) {
   const collection = collections[0];
 
   await ensureCollection(collection);
+
+  // Remove previous chunks for this source to avoid stale data when a
+  // document shrinks between ingestion runs.
+  await qdrantDeleteByFilter({
+    collection,
+    filter: {
+      must: [
+        { key: 'source_path', match: { value: source.file } },
+        { key: 'context', match: { value: source.context } },
+        { key: 'scope', match: { value: source.scope } }
+      ]
+    }
+  });
+
   await qdrantUpsert({ collection, points });
 
   return {
