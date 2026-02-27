@@ -1,14 +1,31 @@
 // ---------------------------------------------------------------------------
-// MCP Server entrypoint — Express + per-session transports + auth
+// MCP Server entrypoint — Express (HTTP) transport
 //
 // Follows the SDK v2 recommended patterns from:
 // https://github.com/modelcontextprotocol/typescript-sdk
 // ---------------------------------------------------------------------------
 
 import crypto from 'node:crypto';
+
+// ---------------------------------------------------------------------------
+// Global error handlers — catch unhandled promise rejections and exceptions
+// so the process doesn't die silently.
+// ---------------------------------------------------------------------------
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js';
+import express from 'express';
 import { MCP_PORT, MCP_HOST, MCP_AUTH_ENABLED, MCP_ENV } from './config.mjs';
 import { tokenVerifier } from './auth/token-verifier.mjs';
 import { registerAllTools } from './tools/index.mjs';
@@ -31,16 +48,13 @@ function createMcpServer() {
 }
 
 // ---------------------------------------------------------------------------
-// Per-session transport management
+// Per-session transport store
 // ---------------------------------------------------------------------------
 
 /** @type {Record<string, StreamableHTTPServerTransport>} */
 const transports = {};
 
-// ---------------------------------------------------------------------------
-// Auth safety check — refuse to start without auth unless MCP_ENV=local
-// ---------------------------------------------------------------------------
-
+// --- Auth safety check ---
 if (!MCP_AUTH_ENABLED && MCP_ENV !== 'local') {
   console.error(
     'FATAL: MCP_API_KEYS is empty and MCP_ENV is not "local".\n' +
@@ -50,10 +64,7 @@ if (!MCP_AUTH_ENABLED && MCP_ENV !== 'local') {
   process.exit(1);
 }
 
-// ---------------------------------------------------------------------------
-// Auth middleware — enabled when MCP_API_KEYS is set, passthrough in local
-// ---------------------------------------------------------------------------
-
+// --- Auth middleware ---
 // Custom Bearer middleware — validates API keys without triggering the
 // SDK's full OAuth 2.0 flow (which expects /register, /authorize, etc.).
 function simpleBearerAuth(verifier) {
@@ -79,16 +90,7 @@ const authMiddleware = MCP_AUTH_ENABLED
   ? simpleBearerAuth(tokenVerifier)
   : (_req, _res, next) => next();
 
-// ---------------------------------------------------------------------------
-// Express app setup
-//
-// createMcpExpressApp provides DNS rebinding protection automatically
-// when host is 127.0.0.1 / localhost.
-// ---------------------------------------------------------------------------
-
-const { createMcpExpressApp } = await import('@modelcontextprotocol/sdk/server/express.js');
-const express = (await import('express')).default;
-
+// --- Express app setup ---
 const app = createMcpExpressApp({
   host: MCP_HOST,
   // When binding to 0.0.0.0 for public access, you may want to
@@ -100,29 +102,21 @@ const app = createMcpExpressApp({
 // Express will use whichever parser matches first; the larger limit takes effect.
 app.use(express.json({ limit: '2mb' }));
 
-// ---------------------------------------------------------------------------
-// Health check — unauthenticated
-// ---------------------------------------------------------------------------
-
+// --- Health check (unauthenticated) ---
 app.get('/health', (_req, res) => {
   res.status(200).send('ok');
 });
 
-// ---------------------------------------------------------------------------
-// POST /mcp — handles initialization and tool calls
-// ---------------------------------------------------------------------------
-
+// --- POST /mcp — initialization and tool calls ---
 app.post('/mcp', authMiddleware, async (req, res) => {
   const sessionId = req.headers['mcp-session-id'];
 
   try {
-    // --- Existing session: reuse transport ---
     if (sessionId && transports[sessionId]) {
       await transports[sessionId].handleRequest(req, res, req.body);
       return;
     }
 
-    // --- New session: must be an initialize request ---
     if (!sessionId && isInitializeRequest(req.body)) {
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: () => crypto.randomUUID(),
@@ -146,7 +140,6 @@ app.post('/mcp', authMiddleware, async (req, res) => {
       return;
     }
 
-    // --- Invalid request ---
     res.status(400).json({
       jsonrpc: '2.0',
       error: { code: -32000, message: 'Bad Request: No valid session ID or not an initialize request' },
@@ -164,10 +157,7 @@ app.post('/mcp', authMiddleware, async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// GET /mcp — SSE stream for server-initiated messages
-// ---------------------------------------------------------------------------
-
+// --- GET /mcp — SSE stream ---
 app.get('/mcp', authMiddleware, async (req, res) => {
   const sessionId = req.headers['mcp-session-id'];
   if (!sessionId || !transports[sessionId]) {
@@ -188,10 +178,7 @@ app.get('/mcp', authMiddleware, async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// DELETE /mcp — session termination
-// ---------------------------------------------------------------------------
-
+// --- DELETE /mcp — session termination ---
 app.delete('/mcp', authMiddleware, async (req, res) => {
   const sessionId = req.headers['mcp-session-id'];
   if (!sessionId || !transports[sessionId]) {
@@ -212,10 +199,7 @@ app.delete('/mcp', authMiddleware, async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// Start listening
-// ---------------------------------------------------------------------------
-
+// --- Start listening ---
 app.listen(MCP_PORT, MCP_HOST, () => {
   console.log(`MCP server listening on http://${MCP_HOST}:${MCP_PORT}/mcp (env: ${MCP_ENV || 'undefined'})`);
   if (MCP_AUTH_ENABLED) {
@@ -225,12 +209,9 @@ app.listen(MCP_PORT, MCP_HOST, () => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// Graceful shutdown
-// ---------------------------------------------------------------------------
-
-process.on('SIGINT', async () => {
-  console.log('Shutting down MCP server...');
+// --- Graceful shutdown ---
+const shutdown = async (signal) => {
+  console.log(`${signal} received, shutting down MCP server...`);
   for (const sid of Object.keys(transports)) {
     try {
       await transports[sid].close();
@@ -239,18 +220,12 @@ process.on('SIGINT', async () => {
       console.error(`Error closing session ${sid}:`, err);
     }
   }
+  try {
+    const { closeAllPools } = await import('./lib/nebula.mjs');
+    await closeAllPools();
+  } catch { /* Nebula may not have been used */ }
   process.exit(0);
-});
+};
 
-process.on('SIGTERM', async () => {
-  console.log('Received SIGTERM, shutting down...');
-  for (const sid of Object.keys(transports)) {
-    try {
-      await transports[sid].close();
-      delete transports[sid];
-    } catch (err) {
-      console.error(`Error closing session ${sid}:`, err);
-    }
-  }
-  process.exit(0);
-});
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));

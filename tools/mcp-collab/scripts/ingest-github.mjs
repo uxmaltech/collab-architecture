@@ -18,7 +18,7 @@ function printHelp() {
       'Required:',
       '  --repo <owner/name>       Repeatable repository argument.',
       '  --context <technical|business>',
-      '  --scope <uxmaltech|enviaflores|business>',
+      '  --scope <name>            Scope name matching MCP_TECHNICAL_SCOPES (e.g. uxmaltech).',
       '  --mode <full|delta>',
       '',
       'Optional:',
