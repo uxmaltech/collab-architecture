@@ -15,6 +15,19 @@ Strict separation is enforced:
 Governing rule:
 "If it is not in Collab Architecture, it is not a rule yet."
 
+## Local MCP Tools
+This repository ships a local MCP server that exposes technical and business context tools for Codex.
+
+Quick start:
+- `make tools-up` starts Qdrant, NebulaGraph, and the MCP server.
+- `make tools-config` writes Codex MCP config to `~/.codex/config.toml` (prompts before overwrite).
+
+Tools exposed:
+- Technical canon: `architecture.graph.query` and `architecture.vector.search` (aliases: `graph.query`, `vector.search`).
+- Business context: `business.graph.query`, `business.vector.search`, and `business.rule` (ingests Markdown into the business graph + vector index).
+
+Default MCP endpoint: `http://127.0.0.1:7337/mcp`.
+
 Repository layout:
 - schema/ defines validation schemas for the knowledge graph, vector records, and cross-layer contracts.
 - domains/ captures domain-specific principles, rules, patterns, and anti-patterns.

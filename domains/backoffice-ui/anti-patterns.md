@@ -5,3 +5,5 @@
 - BO-AP-003: Mixing PHP template logic with inline JavaScript behavior definitions.
 - BO-AP-004: Client-side rendering of primary backoffice screens when PHP can render the same view.
 - BO-AP-005: Implicit behavior triggered by global event listeners without a declared `data-uxmal-*` contract.
+- BO-AP-006: Accessing internal UI runtime state or private symbols from application code.
+- BO-AP-007: Polling or timer-based readiness checks instead of lifecycle events or explicit wait APIs.
