@@ -15,6 +15,18 @@ Strict separation is enforced:
 Governing rule:
 "If it is not in Collab Architecture, it is not a rule yet."
 
+## Modes of Operation
+
+This repository supports two operational modes. The canonical `.md` and `.yaml` files are always the source of truth; graph and vector indexes are derived artifacts that can be rebuilt at any time.
+
+**File-only mode** — Agents read `.md` files directly from this repository. Zero infrastructure dependencies. Best for small canons, single-repo projects, or environments where Docker is unavailable.
+
+**Indexed mode** — Agents query NebulaGraph (graph) and Qdrant (vectors) through the MCP server for semantic recall and graph-based reasoning. Best for large canons or multi-repo ecosystems where context windows are insufficient to hold the full canon.
+
+**Disaster recovery:** The `.md` files are canonical. If the graph or vector database is lost, re-run the seed scripts from `collab-architecture-mcp` to rebuild from source files.
+
+**Transition heuristic:** When the canon exceeds ~50,000 tokens (~375 files at current density), consider switching to indexed mode. As of 2026-03-01, the canon contains ~7,300 tokens across 76 files — well within file-only range.
+
 ## MCP Server
 
 The MCP server has been extracted to its own repository: [`uxmaltech/collab-architecture-mcp`](https://github.com/uxmaltech/collab-architecture-mcp). See that repo for setup, tools, environment variables, and deployment.
@@ -31,3 +43,7 @@ Default MCP endpoint: `http://127.0.0.1:7337/mcp`
 - `prompts/` — authoritative prompts for Codex and Collab agents.
 - `evolution/` — records how the canon changes over time.
 - `governance/` — defines how knowledge enters, is reviewed, and gains confidence.
+
+## Documentation
+
+- [Upgrade Guide](evolution/upgrade-guide.md) — cross-repo upgrade procedures and rollback.
