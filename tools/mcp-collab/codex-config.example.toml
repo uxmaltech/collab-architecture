@@ -1,5 +1,0 @@
-[mcp_servers]
-
-[mcp_servers.collab-architecture]
-type = "http"
-url = "http://127.0.0.1:7337/mcp"
