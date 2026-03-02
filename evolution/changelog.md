@@ -16,6 +16,13 @@ Evolution policy:
 - Added ADR-003 and ADR-004 for table and third-party widget exceptions.
 - Updated UIC-001 to v1.1.0 and added UIC-002 for named route registry and payload validation.
 
+## 2026-03-01
+- Completed ecosystem split: extracted MCP runtime to `collab-architecture-mcp`, removed `tools/mcp-collab/`, Makefile, and operational scripts.
+- Added [Migration Guide](migration-guide-v2.md) documenting Make-to-CLI transition.
+- Added [Upgrade Guide](upgrade-guide.md) for cross-repo version management.
+- Added "Modes of Operation" section to README (file-only vs indexed).
+- Measured canon token count: ~7,300 tokens across 76 files.
+
 ## 2026-02-24
 - Added `ADR-003-v2-context-topology` to document V2 tool topology and store partitioning rationale:
   - Qdrant collections by technical scope and business domain.
