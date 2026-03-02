@@ -34,9 +34,10 @@ Post a follow-up comment on the issue with:
 
 ## Phase 4 — Repo Hygiene
 
-1. If a new abstraction is introduced, update relevant doc maps.
-2. The PR description MUST list all files modified and which tests to run.
-3. Prefer extracting to a shared module over duplicating across modules.
+1. **Abstraction discipline.** Extract to a shared module only when the same logic already exists in two or more places. Do not create abstractions preemptively; an abstraction without proven duplication adds indirection and cognitive load for no benefit.
+2. **Readable code.** Classes, functions, and modules MUST be human-readable. Add inline documentation where intent is not obvious from the code itself — but do not over-document: a clear name and a one-line comment beat a paragraph that restates what the code already says.
+3. **Doc maps.** If a new abstraction is introduced, update relevant doc maps so other contributors can discover it.
+4. The PR description MUST list all files modified and which tests to run.
 
 ## Scope
 
