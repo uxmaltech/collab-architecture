@@ -18,7 +18,6 @@ Evolution policy:
 
 ## 2026-03-01
 - Completed ecosystem split: extracted MCP runtime to `collab-architecture-mcp`, removed `tools/mcp-collab/`, Makefile, and operational scripts.
-- Added [Migration Guide](migration-guide-v2.md) documenting Make-to-CLI transition.
 - Added [Upgrade Guide](upgrade-guide.md) for cross-repo version management.
 - Added "Modes of Operation" section to README (file-only vs indexed).
 - Measured canon token count: ~7,300 tokens across 76 files.

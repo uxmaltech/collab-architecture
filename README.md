@@ -46,5 +46,4 @@ Default MCP endpoint: `http://127.0.0.1:7337/mcp`
 
 ## Documentation
 
-- [Migration Guide](evolution/migration-guide-v2.md) — before/after mapping from Makefile to CLI commands.
 - [Upgrade Guide](evolution/upgrade-guide.md) — cross-repo upgrade procedures and rollback.
