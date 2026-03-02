@@ -17,8 +17,8 @@ Evolution policy:
 - Updated UIC-001 to v1.1.0 and added UIC-002 for named route registry and payload validation.
 
 ## 2026-03-02
-- Added [Implementation Process](../governance/implementation-process.md): mandatory four-phase process (Survey, Change Plan, Implementation, Repo Hygiene) for all governed repositories.
-- Closed 16 ecosystem-split issues (CA#5–CA#7, CA#9–CA#13, CA#16–CA#20, CA#22–CA#24) with evidence tracing.
+- Added [GOV-R-001 Implementation Process](../governance/implementation-process.md): mandatory four-phase process (Survey, Change Plan, Implementation, Repo Hygiene) for all governed repositories.
+- Closed 16 ecosystem-split issues (CA#5, CA#6, CA#7, CA#9, CA#10, CA#11, CA#12, CA#13, CA#16, CA#17, CA#18, CA#19, CA#20, CA#22, CA#23, CA#24) with evidence tracing.
 
 ## 2026-03-01
 - Completed ecosystem split: extracted MCP runtime to `collab-architecture-mcp`, removed `tools/mcp-collab/`, Makefile, and operational scripts.

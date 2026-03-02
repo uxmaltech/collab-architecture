@@ -1,6 +1,11 @@
-# Implementation Process
+# GOV-R-001 Implementation Process
 
-Every issue in a repository governed by collab-architecture MUST follow this four-phase process before merging. The contributor (human or agent) acts as Staff Engineer responsible for architectural coherence of the target repository.
+ID: GOV-R-001
+Status: active
+Confidence: verified
+Created: 2026-03-02
+
+Every issue in a repository governed by collab-architecture MUST [GOV-R-001] follow this four-phase process before merging. The contributor (human or agent) acts as Staff Engineer responsible for architectural coherence of the target repository.
 
 ## Phase 1 — Survey
 

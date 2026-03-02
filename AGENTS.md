@@ -30,8 +30,8 @@ There is no automated test runner. Validate changes by:
 - Recording canon changes in `evolution/changelog.md` with IDs and dates.
 - Verifying graph seeds load correctly via `collab-architecture-mcp` tooling.
 
-## Implementation Process
-Every issue MUST follow the four-phase process defined in `governance/implementation-process.md` (Survey, Change Plan, Implementation, Repo Hygiene). Trivial fixes may skip Survey and Change Plan but must still follow Implementation and Repo Hygiene.
+## Implementation Process (GOV-R-001)
+Every issue MUST [GOV-R-001] follow the four-phase process defined in `governance/implementation-process.md` (Survey, Change Plan, Implementation, Repo Hygiene). Trivial fixes may skip Survey and Change Plan but must still follow Implementation and Repo Hygiene.
 
 ## Commit & Pull Request Guidelines
 - Commit messages are short and imperative; canon updates often use a `Canon: ...` prefix (example: `Canon: add CQRS routing rule`).

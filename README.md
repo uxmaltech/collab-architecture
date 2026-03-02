@@ -47,4 +47,4 @@ Default MCP endpoint: `http://127.0.0.1:7337/mcp`
 ## Documentation
 
 - [Upgrade Guide](evolution/upgrade-guide.md) — cross-repo upgrade procedures and rollback.
-- [Implementation Process](governance/implementation-process.md) — mandatory four-phase process for all governed repositories.
+- [GOV-R-001 Implementation Process](governance/implementation-process.md) — mandatory four-phase process for all governed repositories.
