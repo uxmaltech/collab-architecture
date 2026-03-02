@@ -42,8 +42,9 @@ Default MCP endpoint: `http://127.0.0.1:7337/mcp`
 - `embeddings/` — ingestion source declarations and vector index configuration (canon only).
 - `prompts/` — authoritative prompts for Codex and Collab agents.
 - `evolution/` — records how the canon changes over time.
-- `governance/` — defines how knowledge enters, is reviewed, and gains confidence.
+- `governance/` — defines how knowledge enters, is reviewed, gains confidence, and how issues are implemented.
 
 ## Documentation
 
 - [Upgrade Guide](evolution/upgrade-guide.md) — cross-repo upgrade procedures and rollback.
+- [GOV-R-001 Implementation Process](governance/implementation-process.md) — mandatory four-phase process for all governed repositories.
