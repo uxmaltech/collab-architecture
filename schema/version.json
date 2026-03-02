@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "minCompatibleMCP": "0.1.0",
+  "minCompatibleCLI": "0.1.0",
+  "lastUpdated": "2026-03-01",
+  "schemas": {
+    "graph": "schema/graph.schema.yaml",
+    "vector": "schema/vector.schema.yaml",
+    "contracts": "schema/contracts.schema.yaml"
+  }
+}
