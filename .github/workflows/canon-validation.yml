@@ -1,0 +1,168 @@
+name: Canon Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23
+
+      - name: Install validation dependencies
+        run: npm install ajv ajv-formats js-yaml
+
+      - name: Validate YAML syntax
+        run: |
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const glob = require('path');
+
+          const files = [
+            'schema/graph.schema.yaml',
+            'schema/vector.schema.yaml',
+            'schema/contracts.schema.yaml',
+            'graph/seed.yaml',
+            'embeddings/sources.yaml',
+            'embeddings/index.config.yaml',
+          ];
+
+          // Also find contract files
+          const contractDir = 'contracts';
+          if (fs.existsSync(contractDir)) {
+            fs.readdirSync(contractDir)
+              .filter(f => f.endsWith('.yaml') || f.endsWith('.yml'))
+              .forEach(f => files.push(contractDir + '/' + f));
+          }
+
+          let failed = false;
+          for (const file of files) {
+            if (!fs.existsSync(file)) {
+              console.log('SKIP (not found): ' + file);
+              continue;
+            }
+            try {
+              yaml.load(fs.readFileSync(file, 'utf8'));
+              console.log('  OK: ' + file);
+            } catch (err) {
+              console.error('FAIL: ' + file + ' — ' + err.message);
+              failed = true;
+            }
+          }
+          if (failed) process.exit(1);
+          console.log('\nAll YAML files valid.');
+          "
+
+      - name: Validate schema version descriptor
+        run: |
+          node -e "
+          const fs = require('fs');
+          const versionFile = 'schema/version.json';
+
+          if (!fs.existsSync(versionFile)) {
+            console.error('FAIL: ' + versionFile + ' not found');
+            process.exit(1);
+          }
+
+          const descriptor = JSON.parse(fs.readFileSync(versionFile, 'utf8'));
+
+          // Required fields
+          const required = ['schemaVersion', 'minCompatibleMCP', 'minCompatibleCLI', 'lastUpdated', 'schemas'];
+          for (const field of required) {
+            if (!descriptor[field]) {
+              console.error('FAIL: Missing required field: ' + field);
+              process.exit(1);
+            }
+          }
+
+          // Validate semver format
+          const semverRe = /^\d+\.\d+\.\d+$/;
+          for (const field of ['schemaVersion', 'minCompatibleMCP', 'minCompatibleCLI']) {
+            if (!semverRe.test(descriptor[field])) {
+              console.error('FAIL: Invalid semver in ' + field + ': ' + descriptor[field]);
+              process.exit(1);
+            }
+          }
+
+          // Validate schema file references exist
+          for (const [name, path] of Object.entries(descriptor.schemas)) {
+            if (!fs.existsSync(path)) {
+              console.error('FAIL: Schema file not found: ' + path + ' (referenced by schemas.' + name + ')');
+              process.exit(1);
+            }
+            console.log('  OK: schemas.' + name + ' -> ' + path);
+          }
+
+          console.log('  OK: version descriptor valid (v' + descriptor.schemaVersion + ')');
+          "
+
+      - name: Check reference integrity
+        run: |
+          node -e "
+          const fs = require('fs');
+          const yaml = require('js-yaml');
+
+          // Collect all IDs from seed.yaml
+          const seedFile = 'graph/seed.yaml';
+          if (!fs.existsSync(seedFile)) {
+            console.log('SKIP: ' + seedFile + ' not found');
+            process.exit(0);
+          }
+
+          const seed = yaml.load(fs.readFileSync(seedFile, 'utf8'));
+          const knownIds = new Set();
+          let failed = false;
+
+          // Collect node IDs
+          if (seed.nodes) {
+            for (const node of seed.nodes) {
+              if (node.id) knownIds.add(node.id);
+            }
+          }
+
+          console.log('Found ' + knownIds.size + ' node IDs in seed.yaml');
+
+          // Validate edge references
+          if (seed.edges) {
+            for (const edge of seed.edges) {
+              if (edge.from && !knownIds.has(edge.from)) {
+                console.error('FAIL: Edge references unknown source: ' + edge.from + ' (edge: ' + edge.from + ' -> ' + edge.to + ')');
+                failed = true;
+              }
+              if (edge.to && !knownIds.has(edge.to)) {
+                console.error('FAIL: Edge references unknown target: ' + edge.to + ' (edge: ' + edge.from + ' -> ' + edge.to + ')');
+                failed = true;
+              }
+            }
+          }
+
+          // Validate contract file IDs reference known domains
+          const contractDir = 'contracts';
+          if (fs.existsSync(contractDir)) {
+            const contracts = fs.readdirSync(contractDir).filter(f => f.endsWith('.yaml'));
+            for (const file of contracts) {
+              const contract = yaml.load(fs.readFileSync(contractDir + '/' + file, 'utf8'));
+              if (contract && contract.scope && contract.scope.domains) {
+                for (const domain of contract.scope.domains) {
+                  if (!knownIds.has(domain)) {
+                    console.warn('WARN: Contract ' + file + ' references unknown domain: ' + domain);
+                  }
+                }
+              }
+            }
+          }
+
+          if (failed) {
+            console.error('\nReference integrity check FAILED');
+            process.exit(1);
+          }
+          console.log('\nReference integrity check passed.');
+          "

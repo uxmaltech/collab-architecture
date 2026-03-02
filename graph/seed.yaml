@@ -116,7 +116,7 @@ nodes:
     confidence: verified
     version: v1.0.0
     created: 2026-02-02
-    updated: 2026-02-02
+    updated: 2026-02-05
     source_files: [domains/backoffice-ui/patterns/php-first-rendering.md]
 
   - id: PAT-002
@@ -142,6 +142,144 @@ nodes:
     created: 2026-02-02
     updated: 2026-02-02
     source_files: [domains/backend-cbq/patterns/strict-cqrs-separation.md]
+
+  - id: ADR-003
+    type: Decision
+    name: Non-Canonical Tables for Small Static Lists
+    decision: Non-canonical client-side tables are permitted only for small static datasets without server-side pagination, sorting, or filtering.
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [knowledge/decisions/ADR-003-non-canonical-tables.md]
+
+  - id: ADR-004
+    type: Decision
+    name: Third-Party UI Widgets Under Contract Wrappers
+    decision: Third-party UI widgets are permitted only when wrapped by contract-emitting components, use runtime events, and enforce server-side validation and declared asset loading.
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [knowledge/decisions/ADR-004-third-party-ui-widgets.md]
+
+  - id: UIC-001
+    type: UIContract
+    name: GridJS list endpoint contract
+    contract: Versioned list endpoint contract for canonical table UI requests and responses.
+    status: active
+    confidence: provisional
+    version: v1.1.0
+    created: 2026-02-04
+    updated: 2026-02-05
+    source_files: [contracts/UIC-001-gridjs-cbq-list-endpoint.yaml]
+
+  - id: UIC-002
+    type: UIContract
+    name: Named route registry and payload validation contract
+    contract: Registry-based route discovery and payload validation for UI-to-backend calls.
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [contracts/UIC-002-named-route-registry.yaml]
+
+  - id: RL-001
+    type: Rule
+    name: BO-R-008 Public Runtime API Only
+    rule: UI integrations MUST use only the public UI runtime API; internal runtime state and private symbols MUST NOT be accessed.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/backoffice-ui/rules.md]
+
+  - id: RL-002
+    type: Rule
+    name: BO-R-009 Event-Driven Readiness
+    rule: Component readiness MUST be driven by runtime lifecycle events or explicit wait APIs; polling or timer-based retries MUST NOT be used.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/backoffice-ui/rules.md]
+
+  - id: RL-003
+    type: Rule
+    name: BO-R-010 Reinitialize After DOM Injection
+    rule: Any dynamic DOM injection MUST invoke runtime re-initialization for the affected scope to rebind components, actions, and assets.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/backoffice-ui/rules.md]
+
+  - id: RL-004
+    type: Rule
+    name: BO-R-011 Declarative Asset Dependencies
+    rule: Server-rendered views MUST declare component asset dependencies; the runtime MUST lazy-load assets from that declaration only.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/backoffice-ui/rules.md]
+
+  - id: RL-005
+    type: Rule
+    name: BO-R-012 Sanitize External HTML
+    rule: User-supplied or external HTML MUST be sanitized or escaped before rendering; raw HTML injection MUST NOT occur.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/backoffice-ui/rules.md]
+
+  - id: RL-006
+    type: Rule
+    name: CL-R-006 Registry-Only Contract Invocation
+    rule: UI-to-backend requests MUST be executed via the named-route registry and contract client; direct HTTP calls that bypass contract validation MUST NOT be used.
+    domain: DOM-003
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/cross-layer/rules.md]
+
+  - id: AP-004
+    type: AntiPattern
+    name: BO-AP-006 Internal Runtime Access
+    rule: Accessing internal UI runtime state or private symbols from application code.
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/backoffice-ui/anti-patterns.md]
+
+  - id: AP-005
+    type: AntiPattern
+    name: BO-AP-007 Polling for Readiness
+    rule: Polling or timer-based readiness checks instead of lifecycle events or explicit wait APIs.
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-05
+    updated: 2026-02-05
+    source_files: [domains/backoffice-ui/anti-patterns.md]
 
 edges:
   - id: EDGE-0001
@@ -224,3 +362,111 @@ edges:
     confidence: verified
     created: 2026-02-02
     updated: 2026-02-02
+
+  - id: EDGE-0010
+    type: APPLIES_TO
+    from: ADR-003
+    to: DOM-001
+    rationale: Exception for small static tables applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0011
+    type: APPLIES_TO
+    from: ADR-004
+    to: DOM-001
+    rationale: Third-party UI widget constraints apply to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0012
+    type: APPLIES_TO
+    from: UIC-001
+    to: DOM-003
+    rationale: GridJS list endpoint contract applies to cross-layer interactions.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0013
+    type: APPLIES_TO
+    from: UIC-002
+    to: DOM-003
+    rationale: Named route registry contract applies to cross-layer interactions.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0014
+    type: APPLIES_TO
+    from: RL-001
+    to: DOM-001
+    rationale: Public runtime API rule applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0015
+    type: APPLIES_TO
+    from: RL-002
+    to: DOM-001
+    rationale: Event-driven readiness rule applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0016
+    type: APPLIES_TO
+    from: RL-003
+    to: DOM-001
+    rationale: Runtime re-initialization rule applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0017
+    type: APPLIES_TO
+    from: RL-004
+    to: DOM-001
+    rationale: Declarative asset dependency rule applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0018
+    type: APPLIES_TO
+    from: RL-005
+    to: DOM-001
+    rationale: HTML sanitization rule applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0019
+    type: APPLIES_TO
+    from: RL-006
+    to: DOM-003
+    rationale: Registry-only invocation rule applies to cross-layer interactions.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0020
+    type: APPLIES_TO
+    from: AP-004
+    to: DOM-001
+    rationale: Internal runtime access anti-pattern applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05
+
+  - id: EDGE-0021
+    type: APPLIES_TO
+    from: AP-005
+    to: DOM-001
+    rationale: Polling readiness anti-pattern applies to backoffice UI.
+    confidence: provisional
+    created: 2026-02-05
+    updated: 2026-02-05

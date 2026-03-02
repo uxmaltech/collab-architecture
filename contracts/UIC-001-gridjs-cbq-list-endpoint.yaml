@@ -1,6 +1,6 @@
 contract_id: "UIC-001"
 name: "GridJS list endpoint contract"
-version: "v1.0.0"
+version: "v1.1.0"
 status: "active"
 scope: "Backoffice list tables rendered via GridJS calling Backend CBQ queries"
 parties:
@@ -23,6 +23,10 @@ invariants:
     statement: "The response MUST be valid JSON and MUST include 'rows' and 'count' for every successful request."
   - id: "I-002"
     statement: "The endpoint MUST be versioned (v1, v2, etc.) and the query name MUST be stable."
+  - id: "I-003"
+    statement: "The 'search' parameter MUST be a single string value; empty or absent values are permitted."
+  - id: "I-004"
+    statement: "The 'filters' parameter MUST be an object keyed by column identifiers whose values are scalars or arrays; unknown keys are invalid."
 
 breaking_change_policy:
   allowed: true
@@ -37,4 +41,4 @@ compatibility:
   backward_compatible: true
 
 created: "2026-02-04"
-updated: "2026-02-04"
+updated: "2026-02-05"
