@@ -16,6 +16,10 @@ Evolution policy:
 - Added ADR-003 and ADR-004 for table and third-party widget exceptions.
 - Updated UIC-001 to v1.1.0 and added UIC-002 for named route registry and payload validation.
 
+## 2026-03-02
+- Added [Implementation Process](../governance/implementation-process.md): mandatory four-phase process (Survey, Change Plan, Implementation, Repo Hygiene) for all governed repositories.
+- Closed 16 ecosystem-split issues (CA#5–CA#7, CA#9–CA#13, CA#16–CA#20, CA#22–CA#24) with evidence tracing.
+
 ## 2026-03-01
 - Completed ecosystem split: extracted MCP runtime to `collab-architecture-mcp`, removed `tools/mcp-collab/`, Makefile, and operational scripts.
 - Added [Upgrade Guide](upgrade-guide.md) for cross-repo version management.
