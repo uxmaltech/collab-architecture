@@ -6,6 +6,13 @@ Evolution policy:
 - This log is the authoritative timeline used to detect architectural drift.
 
 ## 2026-03-03
+- **GOV-R-001 expanded to five phases.** Added Phase 5 — Canon Sync: mandatory post-merge phase for extracting reusable architectural learnings into the collab-architecture canon.
+- Added "Thematic Agent Triggers" section to GOV-R-001: defines MUST/SHOULD trigger types for phase-to-thematic agent invocation.
+- Created `prompts/agents/phase-5-canon-sync.md` — agent prompt for Phase 5, supersedes `post-session-canon-update.md`.
+- Deprecated `prompts/agents/post-session-canon-update.md` — functionality absorbed by Phase 5 canon sync agent.
+- Added `Thematic agent triggers:` section to all five phase agent prompts (Option C cross-references).
+- Added `Triggered by:` section to all three thematic agent prompts (`architecture-reviewer`, `drift-detector`, `pattern-extractor`).
+- Updated `prompts/README.md` with two-layer agent model documentation, trigger types, cross-reference model, and trigger map table.
 - Added "Agent Prompt Synchronization" section to [GOV-R-001](../governance/implementation-process.md): any PR that adds, updates, or removes a phase MUST update the corresponding `prompts/agents/phase-{N}-{slug}.md` in the same PR.
 - Added four phase-aligned agent prompts to `prompts/agents/` per GOV-R-001:
   - `phase-1-survey.md` — codebase exploration, duplication check, design proposal

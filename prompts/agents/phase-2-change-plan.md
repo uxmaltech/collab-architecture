@@ -29,3 +29,6 @@ Constraints:
 - Every step MUST trace back to a finding in the Phase 1 survey. Do not introduce scope that was not surveyed.
 - If the plan reveals gaps in the survey, go back to Phase 1 to fill them before proceeding.
 - If consolidation was proposed in Phase 1, the plan MUST include those consolidation steps — do not defer them.
+
+Thematic agent triggers:
+- SHOULD invoke `architecture-reviewer` if the change plan introduces new interfaces, modifies domain boundaries, or changes public API surfaces.

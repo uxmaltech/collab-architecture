@@ -20,3 +20,6 @@ Output:
 Constraints:
 - Do not propose patterns that conflict with existing canon.
 - Do not generalize from a single occurrence.
+
+Triggered by:
+- Phase 3 — Implementation (SHOULD): when repeated structures emerge across two or more locations during implementation.

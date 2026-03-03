@@ -30,3 +30,6 @@ Constraints:
 - Do not skip the duplication check — invest real effort searching by function names, domain terms, and structural patterns.
 - If the repository has canonical architecture docs, cross-reference the design proposal against existing axioms, conventions, and domain boundaries.
 - If evidence is insufficient, state what is missing and how to obtain it rather than guessing.
+
+Thematic agent triggers:
+- SHOULD invoke `drift-detector` if the survey reveals code that diverges from documented architecture (axioms, rules, contracts).

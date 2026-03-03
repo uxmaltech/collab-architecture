@@ -20,3 +20,8 @@ Output:
 Constraints:
 - Do not normalize drift; all deviations must be recorded.
 - If evidence is insufficient, request additional artifacts rather than guessing.
+
+Triggered by:
+- Phase 1 — Survey (SHOULD): when the survey reveals code that diverges from documented architecture.
+- Phase 4 — Repo Hygiene (SHOULD): when structural changes appear to diverge from documented architecture.
+- Phase 5 — Canon Sync (SHOULD): when the implementation revealed divergence between the running system and existing canon.

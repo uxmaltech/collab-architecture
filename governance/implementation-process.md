@@ -5,7 +5,7 @@ Status: active
 Confidence: verified
 Created: 2026-03-02
 
-Every issue in a repository governed by collab-architecture MUST [GOV-R-001] follow this four-phase process before merging. The contributor (human or agent) acts as Staff Engineer responsible for architectural coherence of the target repository.
+Every issue in a repository governed by collab-architecture MUST [GOV-R-001] follow this five-phase process before merging. The contributor (human or agent) acts as Staff Engineer responsible for architectural coherence of the target repository.
 
 ## Phase 1 — Survey
 
@@ -39,6 +39,27 @@ Post a follow-up comment on the issue with:
 3. **Doc maps.** If a new abstraction is introduced, update relevant doc maps so other contributors can discover it.
 4. The PR description MUST list all files modified and which tests to run.
 
+## Phase 5 — Canon Sync
+
+After the PR is merged, extract reusable architectural learnings and update the collab-architecture canon. This phase ensures that knowledge gained during implementation is captured as enforceable, product-agnostic rules.
+
+1. **Extract candidates.** Review the implementation for recurring patterns, invariants, implicit contracts, and new domain rules. Separate learnings into: domain rules, patterns, decisions (ADR), and cross-layer contracts (UIC).
+2. **Deduplicate.** Search the canon for existing entries that already cover the learning. Update existing entries instead of duplicating.
+3. **Write canonical entries.** Place rules and patterns under the most specific domain folder. Each entry MUST have a stable ID, use enforceable language (MUST/MUST NOT/MAY), and include consequences.
+4. **Contracts.** If the implementation introduced or changed UI↔backend response shapes, create or update a contract with semver versioning.
+5. **Validate and commit.** Verify no product-specific names leaked into the canon. Commit with a message prefixed by `Canon:`.
+
+This phase MAY be skipped if the implementation introduced no reusable architectural learnings. The contributor MUST explicitly state that Phase 5 was evaluated and found unnecessary.
+
+## Thematic Agent Triggers
+
+Phase agents (Phase 1–5) MAY invoke thematic agents when specific conditions are met during their phase. Trigger types:
+
+- **MUST**: The phase agent is required to invoke the thematic agent when the condition is met.
+- **SHOULD**: The phase agent is expected to invoke the thematic agent when the condition is met, unless a documented reason justifies skipping it.
+
+Triggers are declared in both directions: phase prompts list which thematic agents they may invoke, and thematic agent prompts list which phases may trigger them. This intentional redundancy enables integrity checking.
+
 ## Agent Prompt Synchronization
 
 Every phase defined in this document MUST have a corresponding agent prompt at `prompts/agents/phase-{N}-{slug}.md`. This ensures AI agents always operate according to the current process.
@@ -61,4 +82,4 @@ This process applies to every repository under collab-architecture governance:
 - `collab-cli`
 - Any future repository added to the governance scope.
 
-Trivial fixes (typos, single-line corrections) MAY skip Phase 1 and Phase 2 but MUST still follow Phase 3 and Phase 4.
+Trivial fixes (typos, single-line corrections) MAY skip Phase 1 and Phase 2 but MUST still follow Phase 3, Phase 4, and Phase 5.
