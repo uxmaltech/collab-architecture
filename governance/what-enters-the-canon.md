@@ -8,6 +8,7 @@ Admission rules:
 - The entry MUST reference the domain(s) it applies to.
 - The entry MUST be validated against the schemas in schema/.
 - The entry MUST not duplicate existing canon; duplicates are rejected.
+- The entry MUST be written in English. No translations, localized variants, or bilingual files are permitted.
 - New canonical entries SHOULD be extracted during Phase 5 — Canon Sync after implementation work completes (see [GOV-R-001 Implementation Process](implementation-process.md)).
 
 Excluded:

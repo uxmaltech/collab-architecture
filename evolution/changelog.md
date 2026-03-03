@@ -7,6 +7,12 @@ Evolution policy:
 
 ## 2026-03-03
 
+### English-Only Canon Rule Added
+- **Added mandatory English-only language constraint to CN-001:** Updated `knowledge/conventions/CN-001-naming.md` to add "Language" section requiring all canon entries be written in English with no translations or localized variants permitted.
+- **Added English-only admission requirement to governance:** Updated `governance/what-enters-the-canon.md` to include language constraint as mandatory admission rule.
+- **Rationale:** Mixed-language content degrades AI agent reasoning quality, creates duplicate semantic entries in graph and vector queries, violates CN-001 uniqueness when same concept exists in multiple languages, and doubles maintenance burden.
+- **Note:** Spanish translation file `ADR-005-v2-context-topology-es.md` was already removed in earlier alignment fixes (see "Canon Alignment Audit Fixes" section below).
+
 ### Canon Alignment Check Added to Phase 5
 - **Added mandatory alignment check to GOV-R-001 Phase 5:** New step 4 requires verification of internal canon consistency before committing (ID collisions, required fields, graph seed entries, cross-domain references, index files, embeddings sources, changelog ordering, deprecation tracking).
 - **Updated `governance/implementation-process.md`:** Inserted alignment check as Phase 5 step 4, renumbered prior steps 4→5 to 5→6.
