@@ -5,6 +5,9 @@
 - CBQ-P-003: Rebuilds are deterministic and reproducible via scheduled execution.
 - CBQ-P-004: Query routes are versioned to preserve backward compatibility.
 - CBQ-P-005: Command handling owns validation and invariant enforcement.
+- CBQ-P-006: Aggregate snapshots bound replay cost and improve rebuild predictability.
+- CBQ-P-007: Soft deletes preserve auditability and referential stability.
+- CBQ-P-008: Database connections are environment-driven to support multi-store deployments.
 
 ## Related Domains
 
