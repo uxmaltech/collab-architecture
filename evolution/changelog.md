@@ -14,7 +14,7 @@ Evolution policy:
 - **Fixed APPLIES_TO edge schema violation:** Updated `schema/graph.schema.yaml` to allow Decision, UIContract, and AntiPattern as valid from_types for APPLIES_TO edges.
 - **Added ADR-005 to graph/seed.yaml:** V2 Context Topology decision now properly seeded in knowledge graph.
 - **Expanded graph/seed.yaml:** Added 8 missing knowledge artifacts (ADR-001, ADR-002, ADR-004, CN-001, CN-002, AP-001, AP-002, AP-003) and 8 domain patterns (PAT-004 through PAT-011).
-- **Added graph edges for new nodes:** Created 24 new edges (EDGE-0022 through EDGE-0045) to connect previously orphaned nodes - all patterns now IMPLEMENT their domains, all conventions/anti-patterns now APPLIES_TO domains, ADR-001/002 JUSTIFIES axioms.
+- **Added graph edges for new nodes:** Created 23 new edges (EDGE-0022 through EDGE-0044) to connect previously orphaned nodes - all patterns now IMPLEMENT their domains, all conventions/anti-patterns now APPLIES_TO domains, ADR-001/002 JUSTIFIES axioms.
 - **Fixed evolution files:** Reordered changelog.md chronologically, updated deprecated.md to reflect post-session-canon-update.md deprecation, removed orphaned CHANGELOG.md.
 - **Expanded README files:** Added contracts/ to main README, created full index in knowledge/README.md (including ADR-004), listed all 3 domains in domains/README.md.
 - **Added cross-domain references:** All domain principles and rules now include "Related Domains" sections linking to relevant cross-domain patterns and rules.
