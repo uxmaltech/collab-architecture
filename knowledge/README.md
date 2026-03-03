@@ -15,6 +15,7 @@ Architectural decisions that document choices and their rationale:
 - [ADR-001](decisions/ADR-001-canonical-representation.md) — Canonical Knowledge Representation
 - [ADR-002](decisions/ADR-002-strict-cqrs-backend.md) — Strict CQRS in Backend CBQ
 - [ADR-003](decisions/ADR-003-non-canonical-tables.md) — Non-Canonical Tables for Small Static Lists
+- [ADR-004](decisions/ADR-004-third-party-ui-widgets.md) — Third-Party UI Widgets Under Contract Wrappers
 - [ADR-005](decisions/ADR-005-v2-context-topology.md) — V2 Context Topology (Tools + Stores)
 
 ### Conventions

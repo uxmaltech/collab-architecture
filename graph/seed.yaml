@@ -292,7 +292,7 @@ nodes:
     version: v1.0.0
     created: 2026-02-24
     updated: 2026-02-24
-    source_files: [knowledge/decisions/ADR-005-v2-context-topology.md, knowledge/decisions/ADR-005-v2-context-topology-es.md]
+    source_files: [knowledge/decisions/ADR-005-v2-context-topology.md]
 
   - id: UIC-001
     type: UIContract
@@ -654,3 +654,210 @@ edges:
     confidence: provisional
     created: 2026-02-05
     updated: 2026-02-05
+
+  - id: EDGE-0022
+    type: IMPLEMENTS
+    from: PAT-004
+    to: DOM-001
+    rationale: GridJS standard table implements backoffice UI tabular pattern.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0023
+    type: IMPLEMENTS
+    from: PAT-005
+    to: DOM-001
+    rationale: CRUD page with GridJS + modals implements backoffice UI CRUD pattern.
+    confidence: provisional
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0024
+    type: IMPLEMENTS
+    from: PAT-006
+    to: DOM-002
+    rationale: Snapshot materialization implements backend CBQ rebuild pattern.
+    confidence: provisional
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0025
+    type: IMPLEMENTS
+    from: PAT-007
+    to: DOM-002
+    rationale: Versioned query routing implements backend CBQ versioning pattern.
+    confidence: provisional
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0026
+    type: IMPLEMENTS
+    from: PAT-008
+    to: DOM-002
+    rationale: Soft delete with Deleted flag implements backend CBQ persistence pattern.
+    confidence: provisional
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0027
+    type: IMPLEMENTS
+    from: PAT-009
+    to: DOM-002
+    rationale: Business DB connection selection implements backend CBQ configuration pattern.
+    confidence: provisional
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0028
+    type: IMPLEMENTS
+    from: PAT-010
+    to: DOM-003
+    rationale: UI to backend contract implements cross-layer interaction pattern.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0029
+    type: IMPLEMENTS
+    from: PAT-011
+    to: DOM-003
+    rationale: Compatibility envelope implements cross-layer compatibility pattern.
+    confidence: provisional
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0030
+    type: APPLIES_TO
+    from: CN-001
+    to: DOM-001
+    rationale: Canonical naming applies to backoffice UI domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0031
+    type: APPLIES_TO
+    from: CN-001
+    to: DOM-002
+    rationale: Canonical naming applies to backend CBQ domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0032
+    type: APPLIES_TO
+    from: CN-001
+    to: DOM-003
+    rationale: Canonical naming applies to cross-layer domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0033
+    type: APPLIES_TO
+    from: CN-002
+    to: DOM-001
+    rationale: Canonical versioning applies to backoffice UI domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0034
+    type: APPLIES_TO
+    from: CN-002
+    to: DOM-002
+    rationale: Canonical versioning applies to backend CBQ domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0035
+    type: APPLIES_TO
+    from: CN-002
+    to: DOM-003
+    rationale: Canonical versioning applies to cross-layer domain.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0036
+    type: APPLIES_TO
+    from: AP-001
+    to: DOM-001
+    rationale: Architecture embedded in code anti-pattern applies to backoffice UI.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0037
+    type: APPLIES_TO
+    from: AP-001
+    to: DOM-002
+    rationale: Architecture embedded in code anti-pattern applies to backend CBQ.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0038
+    type: APPLIES_TO
+    from: AP-001
+    to: DOM-003
+    rationale: Architecture embedded in code anti-pattern applies to cross-layer.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0039
+    type: APPLIES_TO
+    from: AP-002
+    to: DOM-003
+    rationale: Implicit contracts anti-pattern applies to cross-layer interactions.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0040
+    type: APPLIES_TO
+    from: AP-003
+    to: DOM-001
+    rationale: Unreviewed exceptions anti-pattern applies to backoffice UI.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0041
+    type: APPLIES_TO
+    from: AP-003
+    to: DOM-002
+    rationale: Unreviewed exceptions anti-pattern applies to backend CBQ.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0042
+    type: APPLIES_TO
+    from: AP-003
+    to: DOM-003
+    rationale: Unreviewed exceptions anti-pattern applies to cross-layer.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0043
+    type: JUSTIFIES
+    from: ADR-001
+    to: AX-001
+    rationale: Canonical representation decision justifies authoritative canon axiom.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02
+
+  - id: EDGE-0044
+    type: JUSTIFIES
+    from: ADR-002
+    to: AX-002
+    rationale: Strict CQRS decision justifies separation of concerns axiom.
+    confidence: verified
+    created: 2026-02-02
+    updated: 2026-02-02

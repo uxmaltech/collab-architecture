@@ -8,13 +8,15 @@ Evolution policy:
 ## 2026-03-03
 
 ### Canon Alignment Audit Fixes
-- **Fixed ADR-003 ID collision:** Renamed `ADR-003-v2-context-topology.md` and `ADR-003-v2-context-topology-es.md` to ADR-005. Created missing `ADR-003-non-canonical-tables.md`.
-- **Added Confidence field to all knowledge files:** All axioms (AX-001, AX-002, AX-003), decisions (ADR-001, ADR-002, ADR-003, ADR-005), conventions (CN-001, CN-002), and anti-patterns (AP-001, AP-002, AP-003) now include Confidence field per GOV requirement.
+- **Fixed ADR-003 ID collision:** Renamed `ADR-003-v2-context-topology.md` to ADR-005. Created missing `ADR-003-non-canonical-tables.md` and `ADR-004-third-party-ui-widgets.md`.
+- **Removed Spanish translation:** Deleted `ADR-005-v2-context-topology-es.md` per governance requirement that all canon must be in English.
+- **Added Confidence field to all knowledge files:** All axioms (AX-001, AX-002, AX-003), decisions (ADR-001, ADR-002, ADR-003, ADR-004, ADR-005), conventions (CN-001, CN-002), and anti-patterns (AP-001, AP-002, AP-003) now include Confidence field per GOV requirement.
 - **Fixed APPLIES_TO edge schema violation:** Updated `schema/graph.schema.yaml` to allow Decision, UIContract, and AntiPattern as valid from_types for APPLIES_TO edges.
 - **Added ADR-005 to graph/seed.yaml:** V2 Context Topology decision now properly seeded in knowledge graph.
-- **Expanded graph/seed.yaml:** Added 7 missing knowledge artifacts (ADR-001, ADR-002, CN-001, CN-002, AP-001, AP-002, AP-003) and 8 domain patterns (PAT-004 through PAT-011).
+- **Expanded graph/seed.yaml:** Added 8 missing knowledge artifacts (ADR-001, ADR-002, ADR-004, CN-001, CN-002, AP-001, AP-002, AP-003) and 8 domain patterns (PAT-004 through PAT-011).
+- **Added graph edges for new nodes:** Created 24 new edges (EDGE-0022 through EDGE-0045) to connect previously orphaned nodes - all patterns now IMPLEMENT their domains, all conventions/anti-patterns now APPLIES_TO domains, ADR-001/002 JUSTIFIES axioms.
 - **Fixed evolution files:** Reordered changelog.md chronologically, updated deprecated.md to reflect post-session-canon-update.md deprecation, removed orphaned CHANGELOG.md.
-- **Expanded README files:** Added contracts/ to main README, created full index in knowledge/README.md, listed all 3 domains in domains/README.md.
+- **Expanded README files:** Added contracts/ to main README, created full index in knowledge/README.md (including ADR-004), listed all 3 domains in domains/README.md.
 - **Added cross-domain references:** All domain principles and rules now include "Related Domains" sections linking to relevant cross-domain patterns and rules.
 - **Updated governance files:** Added Confidence requirement and Phase 5 reference to what-enters-the-canon.md, added Phase 5 cross-reference to review-process.md.
 - **Fixed prompts:** Corrected confidence levels in prompts/update/user-prompt.md, updated phase-1-survey.md to reference canon instead of docs/architecture/, updated Codex prompts for file-only mode, updated pattern-extractor to reference graph/seed/ directory.
