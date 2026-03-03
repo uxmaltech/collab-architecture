@@ -5,6 +5,15 @@ Evolution policy:
 - Rule changes require an ADR and, when breaking, a migration guide.
 - This log is the authoritative timeline used to detect architectural drift.
 
+## 2026-03-03
+- Added `prompts/init/` directory for `collab init` command:
+  - `system-prompt.md` — AI instructions for initial repository analysis (domain detection, axioms, ADRs, conventions, anti-patterns)
+  - `user-prompt.md` — Reference for constructing user prompts with repository context
+- Added `prompts/update/` directory for AI-assisted canon updates:
+  - `system-prompt.md` — AI instructions for updating canon files while preserving user edits
+  - `user-prompt.md` — Templates for update requirements and validation criteria
+- Updated `prompts/README.md` to document new directory structure and usage
+
 ## 2026-02-02
 - Initialized Collab Architecture canon and repository structure.
 - Established core domains, axioms, and schemas.
