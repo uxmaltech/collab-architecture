@@ -2,6 +2,7 @@
 
 Pattern ID: BO-PAT-005
 Status: Active
+Confidence: provisional
 
 Context:
 Backoffice UI runtime provides internal state and public APIs for component lifecycle, asset loading, and initialization.

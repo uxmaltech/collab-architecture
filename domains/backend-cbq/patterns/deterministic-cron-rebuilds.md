@@ -2,6 +2,7 @@
 
 Pattern ID: CBQ-PAT-006
 Status: Active
+Confidence: provisional
 
 Context:
 Read models must be rebuilt regularly to incorporate new events and maintain consistency with command sources.

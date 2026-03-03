@@ -2,6 +2,7 @@
 
 Pattern ID: CBQ-PAT-005
 Status: Active
+Confidence: provisional
 
 Context:
 Deployments may switch between different business data stores (for example, local SQLite vs MySQL) depending on environment constraints.

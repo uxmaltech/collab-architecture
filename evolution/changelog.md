@@ -7,6 +7,15 @@ Evolution policy:
 
 ## 2026-03-03
 
+### Consolidation Audit Fixes
+- **Fixed CL-PAT-002 ID collision (#62):** Renamed `compatibility-envelope.md` Pattern ID from CL-PAT-002 to CL-PAT-004 to resolve collision with `observability-fields.md`.
+- **Added Confidence field to 17 pattern files (#65):** All patterns now include `Confidence: provisional` or `Confidence: verified` per GOV requirement.
+- **Strengthened weak rules (#65):** BO-R-003 and CL-R-002 rewritten with RFC 2119 MUST keywords instead of declarative phrasing.
+- **Fixed stale references (#65):** AGENTS.md and README.md updated from "four-phase" to "five-phase". CBQ-PAT-004 section header standardized to "Enforceable Semantics:". Prompt init confidence vocabulary corrected from HIGH/MEDIUM/LOW to experimental/provisional/verified.
+- **Added 6 pattern nodes to graph/seed.yaml (#63):** PAT-012 through PAT-017 with 6 IMPLEMENTS edges (EDGE-0045 through EDGE-0050) for patterns added in Domain Completeness PR.
+- **Strengthened 8 thin patterns with Enforceable Semantics (#64):** CBQ-PAT-001, CBQ-PAT-002, CBQ-PAT-003, BO-PAT-001, BO-PAT-002, BO-PAT-003, CL-PAT-001, CL-PAT-004 now include concrete MUST/MUST NOT constraints beyond what their rules already state.
+- **Rationale:** Implements findings from Consolidation Audit (issue #61) to eliminate vague patterns, fix ID collisions, and ensure all canon files meet schema requirements.
+
 ### Domain Completeness: Orphan Rules, Glossary Gaps, Anti-Pattern Symmetry
 - **Added 6 new patterns for orphan rules:**
   - CBQ-PAT-006 (Deterministic Cron-Based Rebuilds) — enforces CBQ-R-004

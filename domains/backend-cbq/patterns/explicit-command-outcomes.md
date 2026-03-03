@@ -2,6 +2,7 @@
 
 Pattern ID: CBQ-PAT-007
 Status: Active
+Confidence: provisional
 
 Context:
 Commands may succeed, fail with validation errors, or fail due to infrastructure issues. Clients must distinguish between these cases.

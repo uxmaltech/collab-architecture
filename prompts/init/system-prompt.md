@@ -41,7 +41,7 @@ Return a JSON object with the following structure:
     {
       "id": "AX-001",
       "title": "Short title",
-      "confidence": "HIGH|MEDIUM|LOW",
+      "confidence": "experimental|provisional|verified",
       "statement": "The invariant statement",
       "rationale": "Why this axiom exists",
       "verification": "How to verify this holds"
@@ -52,7 +52,7 @@ Return a JSON object with the following structure:
       "id": "ADR-001",
       "title": "Short title",
       "status": "Accepted",
-      "confidence": "HIGH|MEDIUM|LOW",
+      "confidence": "experimental|provisional|verified",
       "context": "What prompted this decision",
       "decision": "What was decided",
       "consequences": "What follows from this"
@@ -62,7 +62,7 @@ Return a JSON object with the following structure:
     {
       "id": "CN-001",
       "title": "Short title",
-      "confidence": "HIGH|MEDIUM|LOW",
+      "confidence": "experimental|provisional|verified",
       "scope": "project|module|file",
       "convention": "What the convention is",
       "examples": "Brief code example",
@@ -73,7 +73,7 @@ Return a JSON object with the following structure:
     {
       "id": "AP-001",
       "title": "Short title",
-      "confidence": "HIGH|MEDIUM|LOW",
+      "confidence": "experimental|provisional|verified",
       "severity": "critical|warning|info",
       "problem": "What the anti-pattern looks like",
       "harm": "Why it is harmful",
@@ -83,7 +83,7 @@ Return a JSON object with the following structure:
   "domains": [
     {
       "name": "Domain Name",
-      "confidence": "HIGH|MEDIUM|LOW",
+      "confidence": "experimental|provisional|verified",
       "responsibilities": "What this domain owns",
       "boundaries": "Key directories and modules",
       "dependencies": "Other domains it depends on",

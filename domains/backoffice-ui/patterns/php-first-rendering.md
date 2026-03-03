@@ -2,6 +2,7 @@
 
 Pattern ID: BO-PAT-001
 Status: Active
+Confidence: verified
 
 Context:
 Backoffice screens require predictable loading and auditability.
@@ -18,6 +19,12 @@ Rules Enforced:
 - BO-R-009
 - BO-R-010
 - BO-R-011
+
+Enforceable Semantics:
+- Server-rendered HTML MUST be complete and functional before any JavaScript executes.
+- JavaScript enhancement MUST bind only through `data-uxmal-*` attribute selectors.
+- Dynamic DOM injection MUST trigger runtime re-initialization for the affected scope.
+- Asset dependencies MUST be declared in the server-rendered view; the runtime MUST lazy-load from that declaration only.
 
 Consequences:
 - Pages load with deterministic content and logging.
