@@ -36,17 +36,6 @@ Evolution policy:
   - `user-prompt.md` — Templates for update requirements and validation criteria
 - Updated `prompts/README.md` to document new directory structure and usage
 
-## 2026-02-02
-- Initialized Collab Architecture canon and repository structure.
-- Established core domains, axioms, and schemas.
-
-## 2026-02-05
-- Added Backoffice UI rules BO-R-008 through BO-R-012 and anti-patterns BO-AP-006, BO-AP-007.
-- Updated BO-PAT-001 to enforce event-driven enhancement and asset declaration semantics.
-- Added cross-layer rule CL-R-006 for registry-based contract invocation.
-- Added ADR-003 and ADR-004 for table and third-party widget exceptions.
-- Updated UIC-001 to v1.1.0 and added UIC-002 for named route registry and payload validation.
-
 ## 2026-03-02
 - Added [GOV-R-001 Implementation Process](../governance/implementation-process.md): mandatory four-phase process (Survey, Change Plan, Implementation, Repo Hygiene) for all governed repositories.
 - Closed 16 ecosystem-split issues (CA#5, CA#6, CA#7, CA#9, CA#10, CA#11, CA#12, CA#13, CA#16, CA#17, CA#18, CA#19, CA#20, CA#22, CA#23, CA#24) with evidence tracing.
@@ -58,6 +47,17 @@ Evolution policy:
 - Measured canon token count: ~7,300 tokens across 76 files.
 
 ## 2026-02-24
-- Added `ADR-003-v2-context-topology` to document V2 tool topology and store partitioning rationale:
+- Added `ADR-005-v2-context-topology` (previously ADR-003) to document V2 tool topology and store partitioning rationale:
   - Qdrant collections by technical scope and business domain.
   - Nebula spaces by context (`technical_architecture`, `business_architecture`).
+
+## 2026-02-05
+- Added Backoffice UI rules BO-R-008 through BO-R-012 and anti-patterns BO-AP-006, BO-AP-007.
+- Updated BO-PAT-001 to enforce event-driven enhancement and asset declaration semantics.
+- Added cross-layer rule CL-R-006 for registry-based contract invocation.
+- Added ADR-003 and ADR-004 for table and third-party widget exceptions.
+- Updated UIC-001 to v1.1.0 and added UIC-002 for named route registry and payload validation.
+
+## 2026-02-02
+- Initialized Collab Architecture canon and repository structure.
+- Established core domains, axioms, and schemas.

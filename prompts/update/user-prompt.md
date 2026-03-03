@@ -117,11 +117,12 @@ Files to update:
 - All canon entries missing `confidence` field
 
 Required changes:
-- Add `confidence: draft` to frontmatter for entries without it
+- Add confidence field to frontmatter for entries without it
 - Infer confidence level based on:
   - Status=active + evidence provided → confidence=verified
-  - Status=active + no evidence → confidence=working
-  - Status=draft → confidence=draft
+  - Status=active + limited validation → confidence=provisional
+  - Status=active + no validation yet → confidence=experimental
+  - Status=deprecated → confidence=deprecated
 
 Preserve:
 - Existing confidence values
@@ -129,7 +130,7 @@ Preserve:
 - Manual metadata
 
 Validation:
-- Ensure confidence is one of: draft, working, verified
+- Ensure confidence is one of: experimental, provisional, verified, deprecated
 - Check confidence aligns with status
 ```
 

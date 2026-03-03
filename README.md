@@ -39,6 +39,7 @@ Default MCP endpoint: `http://127.0.0.1:7337/mcp`
 - `domains/` — domain-specific principles, rules, patterns, and anti-patterns.
 - `knowledge/` — axioms, decisions, conventions, and global anti-patterns.
 - `graph/` — node and edge schemas plus a seed dataset used to initialize reasoning.
+- `contracts/` — versioned UI-to-backend contract specifications.
 - `embeddings/` — ingestion source declarations and vector index configuration (canon only).
 - `prompts/` — authoritative prompts for Codex and Collab agents.
 - `evolution/` — records how the canon changes over time.
