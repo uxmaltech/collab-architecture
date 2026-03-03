@@ -46,8 +46,17 @@ After the PR is merged, extract reusable architectural learnings and update the 
 1. **Extract candidates.** Review the implementation for recurring patterns, invariants, implicit contracts, and new domain rules. Separate learnings into: domain rules, patterns, decisions (ADR), and cross-layer contracts (UIC).
 2. **Deduplicate.** Search the canon for existing entries that already cover the learning. Update existing entries instead of duplicating.
 3. **Write canonical entries.** Place rules and patterns under the most specific domain folder. Each entry MUST have a stable ID, use enforceable language (MUST/MUST NOT/MAY), and include consequences.
-4. **Contracts.** If the implementation introduced or changed UI↔backend response shapes, create or update a contract with semver versioning.
-5. **Validate and commit.** Verify no product-specific names leaked into the canon. Commit with a message prefixed by `Canon:`.
+4. **Alignment check.** Before committing, verify internal consistency of the canon:
+   - No ID collisions within any category (axioms, decisions, conventions, rules, patterns, anti-patterns, contracts).
+   - All new entries include required fields per their category template (ID, Status, Confidence, date).
+   - New graph nodes have corresponding entries in `graph/seed.yaml` with valid edge types per `schema/graph.schema.yaml`.
+   - Cross-domain references exist where rules impose obligations on other domains.
+   - Index files (`README.md`, `knowledge/README.md`, `domains/README.md`, `prompts/README.md`) reflect the new entries.
+   - `embeddings/sources.yaml` covers all new file paths.
+   - `evolution/changelog.md` documents the change with correct date ordering.
+   - `evolution/deprecated.md` is updated if any entry is deprecated.
+5. **Contracts.** If the implementation introduced or changed UI↔backend response shapes, create or update a contract with semver versioning.
+6. **Validate and commit.** Verify no product-specific names leaked into the canon. Commit with a message prefixed by `Canon:`.
 
 This phase MAY be skipped if the implementation introduced no reusable architectural learnings. The contributor MUST explicitly state that Phase 5 was evaluated and found unnecessary.
 
