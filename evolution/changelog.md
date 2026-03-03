@@ -7,6 +7,12 @@ Evolution policy:
 
 ## 2026-03-03
 - Added "Agent Prompt Synchronization" section to [GOV-R-001](../governance/implementation-process.md): any PR that adds, updates, or removes a phase MUST update the corresponding `prompts/agents/phase-{N}-{slug}.md` in the same PR.
+- Added four phase-aligned agent prompts to `prompts/agents/` per GOV-R-001:
+  - `phase-1-survey.md` — codebase exploration, duplication check, design proposal
+  - `phase-2-change-plan.md` — ordered execution steps, file list, dependencies
+  - `phase-3-implementation.md` — small blocks with tests, duplication elimination
+  - `phase-4-repo-hygiene.md` — abstraction discipline, readability, doc maps, PR audit
+- Updated `prompts/README.md` to document phase agents and thematic agents as separate groups, added synchronization rule reference (GOV-R-001, #39).
 - Added `prompts/init/` directory for `collab init` command:
   - `system-prompt.md` — AI instructions for initial repository analysis (domain detection, axioms, ADRs, conventions, anti-patterns)
   - `user-prompt.md` — Reference for constructing user prompts with repository context
