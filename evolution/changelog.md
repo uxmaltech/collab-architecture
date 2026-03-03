@@ -7,6 +7,26 @@ Evolution policy:
 
 ## 2026-03-03
 
+### Domain Completeness: Orphan Rules, Glossary Gaps, Anti-Pattern Symmetry
+- **Added 6 new patterns for orphan rules:**
+  - CBQ-PAT-006 (Deterministic Cron-Based Rebuilds) — enforces CBQ-R-004
+  - CBQ-PAT-007 (Explicit Command Outcomes) — enforces CBQ-R-007
+  - BO-PAT-005 (Runtime API Isolation) — enforces BO-R-008
+  - BO-PAT-006 (HTML Sanitization) — enforces BO-R-012
+  - CL-PAT-002 (Mandatory Observability Fields) — enforces CL-R-004
+  - CL-PAT-003 (Named-Route Registry) — enforces CL-R-006
+- **Added 3 new Backend CBQ principles:** CBQ-P-006 (snapshots), CBQ-P-007 (soft delete), CBQ-P-008 (DB connection)
+- **Added 7 new Backoffice UI principles:** BO-P-006 through BO-P-012 covering client-side routing, inline JS, runtime API, lifecycle, re-init, assets, and sanitization
+- **Updated all 3 domain glossaries:**
+  - Backend CBQ: Added soft delete, deterministic rebuild, explicit outcome, DB selector
+  - Backoffice UI: Added runtime API, lifecycle events, named-route registry, asset dependencies, HTML sanitization
+  - Cross-Layer: Added observability fields, named-route registry, contract client
+- **Added "Rules Violated" sections to all domain anti-patterns:**
+  - Backend CBQ: CBQ-AP-001 through CBQ-AP-005 now reference violated rules
+  - Backoffice UI: BO-AP-001 through BO-AP-007 now reference violated rules
+  - Cross-Layer: CL-AP-001 through CL-AP-004 now reference violated rules
+- **Rationale:** Closes remaining items from Canon Alignment Audit (issue #44). BO-R-005 and BO-R-006 covered by existing principles (BO-P-006, BO-P-007) rather than new patterns as they are architectural constraints.
+
 ### English-Only Canon Rule Added
 - **Added mandatory English-only language constraint to CN-001:** Updated `knowledge/conventions/CN-001-naming.md` to add "Language" section requiring all canon entries be written in English with no translations or localized variants permitted.
 - **Added English-only admission requirement to governance:** Updated `governance/what-enters-the-canon.md` to include language constraint as mandatory admission rule.
