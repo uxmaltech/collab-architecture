@@ -2,6 +2,7 @@
 
 Pattern ID: BO-PAT-006
 Status: Active
+Confidence: provisional
 
 Context:
 User-supplied content or external data sources may contain malicious HTML or scripts that must be neutralized before rendering.

@@ -2,6 +2,7 @@
 
 Pattern ID: CL-PAT-003
 Status: Active
+Confidence: provisional
 
 Context:
 UI-to-backend requests must be validated against contract definitions to prevent drift and runtime errors.

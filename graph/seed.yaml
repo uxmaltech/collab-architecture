@@ -239,6 +239,78 @@ nodes:
     updated: 2026-02-02
     source_files: [domains/cross-layer/patterns/compatibility-envelope.md]
 
+  - id: PAT-012
+    type: ArchitecturalPattern
+    name: Deterministic Cron-Based Rebuilds
+    summary: Schedule read model rebuilds as cron jobs with deterministic inputs from persistent sources only.
+    domain: DOM-002
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-03-03
+    updated: 2026-03-03
+    source_files: [domains/backend-cbq/patterns/deterministic-cron-rebuilds.md]
+
+  - id: PAT-013
+    type: ArchitecturalPattern
+    name: Explicit Command Outcomes
+    summary: Command handlers return structured outcomes with stable codes distinguishing validation, invariant, and infrastructure failures.
+    domain: DOM-002
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-03-03
+    updated: 2026-03-03
+    source_files: [domains/backend-cbq/patterns/explicit-command-outcomes.md]
+
+  - id: PAT-014
+    type: ArchitecturalPattern
+    name: Runtime API Isolation
+    summary: Public API contract for UI runtime; no access to private or undocumented internals.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-03-03
+    updated: 2026-03-03
+    source_files: [domains/backoffice-ui/patterns/runtime-api-isolation.md]
+
+  - id: PAT-015
+    type: ArchitecturalPattern
+    name: HTML Sanitization
+    summary: Allowlist-based sanitizers for user and external content; no raw innerHTML.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-03-03
+    updated: 2026-03-03
+    source_files: [domains/backoffice-ui/patterns/html-sanitization.md]
+
+  - id: PAT-016
+    type: ArchitecturalPattern
+    name: Mandatory Observability Fields
+    summary: All cross-layer payloads MUST include request_id, actor_id, and timestamp for traceability.
+    domain: DOM-003
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-03-03
+    updated: 2026-03-03
+    source_files: [domains/cross-layer/patterns/observability-fields.md]
+
+  - id: PAT-017
+    type: ArchitecturalPattern
+    name: Named-Route Registry
+    summary: Centralized routing with pre-transmission contract validation for all UI-to-backend requests.
+    domain: DOM-003
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-03-03
+    updated: 2026-03-03
+    source_files: [domains/cross-layer/patterns/named-route-registry.md]
+
   - id: ADR-001
     type: Decision
     name: Canonical Knowledge Representation
@@ -861,3 +933,57 @@ edges:
     confidence: verified
     created: 2026-02-02
     updated: 2026-02-02
+
+  - id: EDGE-0045
+    type: IMPLEMENTS
+    from: PAT-012
+    to: DOM-002
+    rationale: Deterministic cron rebuilds implement backend CBQ read model strategy.
+    confidence: provisional
+    created: 2026-03-03
+    updated: 2026-03-03
+
+  - id: EDGE-0046
+    type: IMPLEMENTS
+    from: PAT-013
+    to: DOM-002
+    rationale: Explicit command outcomes implement backend CBQ command handler contracts.
+    confidence: provisional
+    created: 2026-03-03
+    updated: 2026-03-03
+
+  - id: EDGE-0047
+    type: IMPLEMENTS
+    from: PAT-014
+    to: DOM-001
+    rationale: Runtime API isolation implements backoffice UI runtime discipline.
+    confidence: provisional
+    created: 2026-03-03
+    updated: 2026-03-03
+
+  - id: EDGE-0048
+    type: IMPLEMENTS
+    from: PAT-015
+    to: DOM-001
+    rationale: HTML sanitization implements backoffice UI security requirements.
+    confidence: provisional
+    created: 2026-03-03
+    updated: 2026-03-03
+
+  - id: EDGE-0049
+    type: IMPLEMENTS
+    from: PAT-016
+    to: DOM-003
+    rationale: Mandatory observability fields implement cross-layer traceability.
+    confidence: provisional
+    created: 2026-03-03
+    updated: 2026-03-03
+
+  - id: EDGE-0050
+    type: IMPLEMENTS
+    from: PAT-017
+    to: DOM-003
+    rationale: Named-route registry implements cross-layer contract invocation.
+    confidence: provisional
+    created: 2026-03-03
+    updated: 2026-03-03

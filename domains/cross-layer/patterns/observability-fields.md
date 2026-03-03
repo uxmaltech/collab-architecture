@@ -2,6 +2,7 @@
 
 Pattern ID: CL-PAT-002
 Status: Active
+Confidence: provisional
 
 Context:
 Cross-layer interactions require tracing, debugging, and audit capabilities.

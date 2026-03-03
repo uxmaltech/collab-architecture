@@ -2,6 +2,7 @@
 
 Pattern ID: BO-PAT-004
 Status: Active
+Confidence: provisional
 
 Context:
 Backoffice CRUD screens are repetitive: list in a table, create/edit in a modal, remove with confirmation.
