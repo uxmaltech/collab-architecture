@@ -21,3 +21,7 @@ All changes to the canon follow this process:
 5. Publication
    - Graph and vector indexes are re-generated.
    - Collab agents reload the canon.
+
+## Relationship to GOV-R-001
+
+Canon entries are typically created during **Phase 5 — Canon Sync** of the [GOV-R-001 Implementation Process](implementation-process.md). After implementation work completes, the Phase 5 canon sync agent extracts reusable architectural learnings and follows this review process to promote them into the canon.

@@ -1,7 +1,7 @@
 # ADR-003 Non-Canonical Tables for Small Static Lists
 
 Status: Active
-Date: 2026-02-05
+Created: 2026-02-05
 Confidence: provisional
 
 ## Context

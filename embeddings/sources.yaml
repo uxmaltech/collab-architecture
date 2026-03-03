@@ -19,3 +19,8 @@ sources:
       - graph/**/*.yaml
       - embeddings/*.yaml
     default_confidence: verified
+
+  - id: canon-contracts
+    include:
+      - contracts/**/*.yaml
+    default_confidence: verified

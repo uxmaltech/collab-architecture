@@ -1,7 +1,7 @@
 # ADR-002 Strict CQRS in Backend CBQ
 
 Status: Active
-Date: 2026-02-02
+Created: 2026-02-02
 Confidence: verified
 
 Context:

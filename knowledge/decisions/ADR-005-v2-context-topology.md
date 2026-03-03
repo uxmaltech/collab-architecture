@@ -1,7 +1,7 @@
 # ADR-005 V2 Context Topology (Tools + Stores)
 
 Status: Active
-Date: 2026-02-24
+Created: 2026-02-24
 Confidence: verified
 
 Context:

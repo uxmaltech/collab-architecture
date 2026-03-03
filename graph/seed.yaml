@@ -143,6 +143,124 @@ nodes:
     updated: 2026-02-02
     source_files: [domains/backend-cbq/patterns/strict-cqrs-separation.md]
 
+  - id: PAT-004
+    type: ArchitecturalPattern
+    name: GridJS Standard Table
+    summary: Use GridJS as the single approved tabular UI component with consistent sorting, pagination, and export.
+    domain: DOM-001
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backoffice-ui/patterns/gridjs-standard-table.md]
+
+  - id: PAT-005
+    type: ArchitecturalPattern
+    name: CRUD Page with GridJS + Modals
+    summary: Standard backoffice CRUD pattern using GridJS tables and modal forms for create/edit operations.
+    domain: DOM-001
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backoffice-ui/patterns/crud-page-gridjs-modals.md]
+
+  - id: PAT-006
+    type: ArchitecturalPattern
+    name: Snapshot Materialization
+    summary: Materialize aggregate snapshots to enable efficient rebuild paths without replaying full event history.
+    domain: DOM-002
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backend-cbq/patterns/snapshot-materialization.md]
+
+  - id: PAT-007
+    type: ArchitecturalPattern
+    name: Versioned Query Routing
+    summary: Route queries by version to maintain stable response shapes for multiple clients.
+    domain: DOM-002
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backend-cbq/patterns/versioned-query-routing.md]
+
+  - id: PAT-008
+    type: ArchitecturalPattern
+    name: Soft Delete with Deleted Flag
+    summary: Use Deleted flag for soft deletes to preserve auditability without breaking historical references.
+    domain: DOM-002
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backend-cbq/patterns/soft-delete-deleted-flag.md]
+
+  - id: PAT-009
+    type: ArchitecturalPattern
+    name: Business DB Connection Selection
+    summary: Select database connections via model connection name to support environment-specific data stores.
+    domain: DOM-002
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/backend-cbq/patterns/business-db-connection-selection.md]
+
+  - id: PAT-010
+    type: ArchitecturalPattern
+    name: UI to Backend Contract
+    summary: Explicit, versioned contracts define shared interfaces between UI and backend teams.
+    domain: DOM-003
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/cross-layer/patterns/ui-backend-contract.md]
+
+  - id: PAT-011
+    type: ArchitecturalPattern
+    name: Compatibility Envelope
+    summary: Control changes to prevent silent client failures when multiple clients consume the same contract version.
+    domain: DOM-003
+    status: active
+    confidence: provisional
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [domains/cross-layer/patterns/compatibility-envelope.md]
+
+  - id: ADR-001
+    type: Decision
+    name: Canonical Knowledge Representation
+    decision: The canonical representation of architectural knowledge SHALL be stored in files that can be compiled into both a knowledge graph and a vector index.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/decisions/ADR-001-canonical-representation.md]
+
+  - id: ADR-002
+    type: Decision
+    name: Strict CQRS in Backend CBQ
+    decision: The Backend CBQ domain SHALL implement strict CQRS separation with independent command and query models, materialized read stores, and versioned query routing.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/decisions/ADR-002-strict-cqrs-backend.md]
+
   - id: ADR-003
     type: Decision
     name: Non-Canonical Tables for Small Static Lists
@@ -269,6 +387,61 @@ nodes:
     created: 2026-02-05
     updated: 2026-02-05
     source_files: [domains/cross-layer/rules.md]
+
+  - id: CN-001
+    type: Convention
+    name: Canonical Naming
+    rule: Single-entry canonical documents under knowledge/ MUST use kebab-case filenames that begin with their stable ID. IDs MUST be unique within their category and MUST appear in the document title.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/conventions/CN-001-naming.md]
+
+  - id: CN-002
+    type: Convention
+    name: Canonical Versioning
+    rule: All versioned artifacts in the canon MUST use semantic versioning in the form vMAJOR.MINOR.PATCH. Breaking changes require a MAJOR increment and a migration guide.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/conventions/CN-002-versioning.md]
+
+  - id: AP-001
+    type: AntiPattern
+    name: Architecture Embedded Only in Code
+    rule: No architectural rule is valid if it exists only in application code or in team conventions outside this repository.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/anti-patterns/AP-001-architecture-in-code.md]
+
+  - id: AP-002
+    type: AntiPattern
+    name: Implicit Contracts
+    rule: Implicit or undocumented contracts between UI and backend are forbidden. Every cross-layer contract MUST be explicit and versioned.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/anti-patterns/AP-002-implicit-contracts.md]
+
+  - id: AP-003
+    type: AntiPattern
+    name: Unreviewed Exceptions
+    rule: Exceptions to canonical rules are invalid unless recorded as an architectural decision with an explicit expiration or replacement plan.
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-02
+    updated: 2026-02-02
+    source_files: [knowledge/anti-patterns/AP-003-unreviewed-exceptions.md]
 
   - id: AP-004
     type: AntiPattern

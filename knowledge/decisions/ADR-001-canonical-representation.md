@@ -1,7 +1,7 @@
 # ADR-001 Canonical Knowledge Representation
 
 Status: Active
-Date: 2026-02-02
+Created: 2026-02-02
 Confidence: verified
 
 Context:

@@ -12,7 +12,7 @@ Thoroughly explore the codebase to map all files, logic, and boundaries relevant
 Inputs:
 - The issue description (title, body, labels).
 - Access to the full repository (file tree, source files, git history).
-- The canonical architecture documentation (`docs/architecture/`).
+- The canonical architecture (collab-architecture repository or local canon files).
 
 Process:
 1. **Relevant files and modules.** Search across directory structures, grep for related identifiers, and trace import chains. The goal is to leave no relevant file undiscovered. List every file where related logic already exists or should live.
