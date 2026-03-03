@@ -39,6 +39,20 @@ Post a follow-up comment on the issue with:
 3. **Doc maps.** If a new abstraction is introduced, update relevant doc maps so other contributors can discover it.
 4. The PR description MUST list all files modified and which tests to run.
 
+## Agent Prompt Synchronization
+
+Every phase defined in this document MUST have a corresponding agent prompt at `prompts/agents/phase-{N}-{slug}.md`. This ensures AI agents always operate according to the current process.
+
+When this document is modified:
+
+1. **Phase added.** A new agent prompt MUST be created in the same PR. The prompt MUST reference the GOV-R-001 phase it implements, define expected inputs and outputs, and follow the structure of existing phase prompts.
+2. **Phase scope updated.** The corresponding agent prompt MUST be updated in the same PR to reflect the new scope. Changes to acceptance criteria, responsibilities, or constraints in a phase MUST be mirrored in the prompt.
+3. **Phase removed.** The corresponding agent prompt MUST be removed or marked deprecated in the same PR.
+4. **`prompts/README.md`** MUST be updated to reflect any structural change to the agent prompt set.
+5. **`evolution/changelog.md`** MUST document the alignment.
+
+A PR that modifies phases in this document without updating the affected agent prompts MUST NOT be merged.
+
 ## Scope
 
 This process applies to every repository under collab-architecture governance:

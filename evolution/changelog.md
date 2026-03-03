@@ -6,6 +6,7 @@ Evolution policy:
 - This log is the authoritative timeline used to detect architectural drift.
 
 ## 2026-03-03
+- Added "Agent Prompt Synchronization" section to [GOV-R-001](../governance/implementation-process.md): any PR that adds, updates, or removes a phase MUST update the corresponding `prompts/agents/phase-{N}-{slug}.md` in the same PR.
 - Added four phase-aligned agent prompts to `prompts/agents/` per GOV-R-001:
   - `phase-1-survey.md` — codebase exploration, duplication check, design proposal
   - `phase-2-change-plan.md` — ordered execution steps, file list, dependencies
