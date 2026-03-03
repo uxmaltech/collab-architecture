@@ -2,6 +2,7 @@
 
 Status: Active
 Date: 2026-02-02
+Confidence: verified
 
 Context:
 Collab agents require deterministic reasoning and retrieval over UxmalTech architecture. A single representation is insufficient for both graph reasoning and semantic recall.

@@ -2,6 +2,7 @@
 
 Status: Active
 Created: 2026-02-02
+Confidence: verified
 
 Rule:
 No architectural rule is valid if it exists only in application code or in team conventions outside this repository.

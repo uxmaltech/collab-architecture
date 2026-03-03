@@ -152,7 +152,7 @@ edge_types:
     to_types: [Domain, Technology, UIContract, Rule]
   APPLIES_TO:
     required: [id, type, from, to, rationale, confidence, created, updated]
-    from_types: [Axiom, Rule, Convention]
+    from_types: [Axiom, Rule, Convention, Decision, UIContract, AntiPattern]
     to_types: [Domain, ArchitecturalPattern, UIContract, Technology]
   CONFLICTS_WITH:
     required: [id, type, from, to, rationale, confidence, created, updated]

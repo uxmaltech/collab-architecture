@@ -2,6 +2,7 @@
 
 Status: Active
 Created: 2026-02-02
+Confidence: verified
 
 Rule:
 Exceptions to canonical rules are invalid unless recorded as an architectural decision with an explicit expiration or replacement plan.

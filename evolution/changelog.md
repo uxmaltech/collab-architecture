@@ -6,6 +6,14 @@ Evolution policy:
 - This log is the authoritative timeline used to detect architectural drift.
 
 ## 2026-03-03
+
+### Canon Alignment Audit Fixes
+- **Fixed ADR-003 ID collision:** Renamed `ADR-003-v2-context-topology.md` and `ADR-003-v2-context-topology-es.md` to ADR-005. Created missing `ADR-003-non-canonical-tables.md`.
+- **Added Confidence field to all knowledge files:** All axioms (AX-001, AX-002, AX-003), decisions (ADR-001, ADR-002, ADR-003, ADR-005), conventions (CN-001, CN-002), and anti-patterns (AP-001, AP-002, AP-003) now include Confidence field per GOV requirement.
+- **Fixed APPLIES_TO edge schema violation:** Updated `schema/graph.schema.yaml` to allow Decision, UIContract, and AntiPattern as valid from_types for APPLIES_TO edges.
+- **Added ADR-005 to graph/seed.yaml:** V2 Context Topology decision now properly seeded in knowledge graph.
+
+### Phase 5 and Agent Prompts
 - **GOV-R-001 expanded to five phases.** Added Phase 5 — Canon Sync: mandatory post-merge phase for extracting reusable architectural learnings into the collab-architecture canon.
 - Added "Thematic Agent Triggers" section to GOV-R-001: defines MUST/SHOULD trigger types for phase-to-thematic agent invocation.
 - Created `prompts/agents/phase-5-canon-sync.md` — agent prompt for Phase 5, supersedes `post-session-canon-update.md`.

@@ -165,6 +165,17 @@ nodes:
     updated: 2026-02-05
     source_files: [knowledge/decisions/ADR-004-third-party-ui-widgets.md]
 
+  - id: ADR-005
+    type: Decision
+    name: V2 Context Topology (Tools + Stores)
+    decision: V2 tools query architecture by context/scope with N+1 Qdrant collections (technical-{scope} per scope + business-rules) and 2 Nebula spaces (technical_architecture, business_architecture).
+    status: active
+    confidence: verified
+    version: v1.0.0
+    created: 2026-02-24
+    updated: 2026-02-24
+    source_files: [knowledge/decisions/ADR-005-v2-context-topology.md, knowledge/decisions/ADR-005-v2-context-topology-es.md]
+
   - id: UIC-001
     type: UIContract
     name: GridJS list endpoint contract
