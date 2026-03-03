@@ -7,6 +7,12 @@ Evolution policy:
 
 ## 2026-03-03
 
+### Canon Alignment Check Added to Phase 5
+- **Added mandatory alignment check to GOV-R-001 Phase 5:** New step 4 requires verification of internal canon consistency before committing (ID collisions, required fields, graph seed entries, cross-domain references, index files, embeddings sources, changelog ordering, deprecation tracking).
+- **Updated `governance/implementation-process.md`:** Inserted alignment check as Phase 5 step 4, renumbered prior steps 4→5 to 5→6.
+- **Updated `prompts/agents/phase-5-canon-sync.md`:** Added alignment check to Process section as step 4, renumbered subsequent steps.
+- **Addresses root cause of canon alignment audit findings:** Prevents recurrence of ID collisions, schema violations, missing fields, stale indexes, and incomplete graph seeding identified in issue #44.
+
 ### Canon Alignment Audit Fixes
 - **Fixed ADR-003 ID collision:** Renamed `ADR-003-v2-context-topology.md` to ADR-005. Created missing `ADR-003-non-canonical-tables.md` and `ADR-004-third-party-ui-widgets.md`.
 - **Removed Spanish translation:** Deleted `ADR-005-v2-context-topology-es.md` per governance requirement that all canon must be in English.
