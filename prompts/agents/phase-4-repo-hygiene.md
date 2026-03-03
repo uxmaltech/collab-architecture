@@ -28,5 +28,6 @@ Output:
 Constraints:
 - Do not rewrite code for style preferences — only flag objective hygiene issues defined in GOV-R-001 Phase 4.
 - Do not add scope. If new issues are found (bugs, missing features), document them as follow-up issues, do not fix them in this phase.
-- May invoke the `architecture-reviewer` agent to verify canon compliance on new abstractions or interfaces.
-- May invoke the `drift-detector` agent if structural changes appear to diverge from documented architecture.
+Thematic agent triggers:
+- MUST invoke `architecture-reviewer` to verify canon compliance on new abstractions or interfaces.
+- SHOULD invoke `drift-detector` if structural changes appear to diverge from documented architecture.

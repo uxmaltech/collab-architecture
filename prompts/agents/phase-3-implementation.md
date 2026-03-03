@@ -30,4 +30,6 @@ Constraints:
 - Do not skip tests — every functional change requires a corresponding test.
 - Do not leave TODO or FIXME comments for work that should be done now. If it is in the change plan, do it now.
 - If a step from the plan cannot be implemented as designed, stop and update the plan before proceeding.
-- May invoke the `pattern-extractor` agent if repeated structures emerge during implementation.
+Thematic agent triggers:
+- SHOULD invoke `pattern-extractor` if repeated structures emerge across two or more locations during implementation.
+- SHOULD invoke `architecture-reviewer` if a new interface or contract is introduced that was not part of the original change plan.
