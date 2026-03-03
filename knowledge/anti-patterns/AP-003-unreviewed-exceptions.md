@@ -9,3 +9,7 @@ Exceptions to canonical rules are invalid unless recorded as an architectural de
 
 Scope:
 All domains and cross-layer contracts.
+
+Rules Violated:
+- AX-001 (Authoritative Canon) — only recorded decisions are binding
+- CN-001 (Canonical Naming) — exceptions must have stable IDs

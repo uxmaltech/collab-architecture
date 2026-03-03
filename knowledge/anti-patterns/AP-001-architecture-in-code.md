@@ -9,3 +9,7 @@ No architectural rule is valid if it exists only in application code or in team 
 
 Scope:
 All UxmalTech systems.
+
+Rules Violated:
+- AX-001 (Authoritative Canon) — architecture not recorded in the canon is non-binding
+- AX-002 (Separation of Code and Canon) — architectural rules must not be defined only in code
