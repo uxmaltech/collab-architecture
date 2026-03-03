@@ -6,3 +6,8 @@
 - CL-R-004: Observability fields (request_id, actor_id, timestamp) MUST be present in all cross-layer payloads.
 - CL-R-005: UI behavior MUST reference backend contract versions explicitly when invoking queries or commands.
 - CL-R-006: UI-to-backend requests MUST be executed via the named-route registry and contract client; direct HTTP calls that bypass contract validation MUST NOT be used.
+
+## Related Domains
+
+- **Backoffice UI** (DOM-001): Implements CL-R-006 via registry-based invocation (see BO-PAT-002, BO-PAT-004)
+- **Backend CBQ** (DOM-002): Query versioning (CBQ-P-004, CBQ-PAT-003) supports CL-R-002 and CL-R-005

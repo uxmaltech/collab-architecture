@@ -5,3 +5,8 @@
 - CBQ-P-003: Rebuilds are deterministic and reproducible via scheduled execution.
 - CBQ-P-004: Query routes are versioned to preserve backward compatibility.
 - CBQ-P-005: Command handling owns validation and invariant enforcement.
+
+## Related Domains
+
+- **Cross-Layer** (DOM-003): Backend query routes implement cross-layer UI contracts (see CL-R-001, CL-R-005, CL-PAT-001)
+- **Backoffice UI** (DOM-001): Consumes backend query endpoints for lists, detail views, and form validation
