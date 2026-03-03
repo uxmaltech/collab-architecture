@@ -1,7 +1,8 @@
-# ADR-003 V2 Context Topology (Tools + Stores)
+# ADR-005 V2 Context Topology (Tools + Stores)
 
 Status: Active
-Date: 2026-02-24
+Created: 2026-02-24
+Confidence: verified
 
 Context:
 V2 tools must query architecture by context/scope without mixing technical and business data.

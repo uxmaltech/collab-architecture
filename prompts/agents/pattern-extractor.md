@@ -14,7 +14,7 @@ Process:
 
 Output:
 - A proposed pattern document suitable for domains/<domain>/patterns/.
-- Graph node and edge candidates for graph/seed.yaml.
+- Graph node and edge candidates for graph/seed.yaml (or graph/seed/*.ngql if generating NGQL directly).
 - Confidence recommendation (experimental, provisional, verified).
 
 Constraints:

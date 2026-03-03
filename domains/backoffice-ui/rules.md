@@ -12,3 +12,8 @@
 - BO-R-010: Any dynamic DOM injection MUST invoke runtime re-initialization for the affected scope to rebind components, actions, and assets.
 - BO-R-011: Server-rendered views MUST declare component asset dependencies; the runtime MUST lazy-load assets from that declaration only.
 - BO-R-012: User-supplied or external HTML MUST be sanitized or escaped before rendering; raw HTML injection MUST NOT occur.
+
+## Related Domains
+
+- **Cross-Layer** (DOM-003): BO-R-002 and BO-R-007 implement cross-layer contract patterns (see CL-R-001, CL-R-006)
+- **Backend CBQ** (DOM-002): Backoffice UI queries backend via cross-layer contracts (see CBQ-PAT-003 for query versioning)
