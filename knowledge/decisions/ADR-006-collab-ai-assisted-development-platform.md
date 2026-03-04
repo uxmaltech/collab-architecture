@@ -45,7 +45,7 @@ graph TD
 
     subgraph CANON["Canon (fuente de verdad .md)"]
         CA[collab-architecture<br><i>framework uxmaltech</i>]
-        BCA[collab-app-architecture<br><i>canon aplicación</i>]
+        BCA["canon aplicación<br><i>(repo configurable)</i>"]
     end
 
     HUMAN --> CHAT
@@ -130,8 +130,7 @@ Each application or business unit maintains its own architecture canon repositor
 | Repository | Type | Content |
 |-----------|------|---------|
 | `uxmaltech/collab-architecture` | Framework canon | Rules, patterns, and decisions for the uxmaltech framework (CQRS, backoffice-ui, backend-cbq, etc.) |
-| `uxmaltech/collab-app-architecture` | Application canon | Rules, patterns, and decisions specific to the Collab platform (chat, discovery, project management) |
-| *Any configurable repo* | Business canon | Rules, patterns, and decisions specific to each business unit or application |
+| *(configurable per project)* | Application / Business canon | Rules, patterns, and decisions specific to each application or business unit. Repo name is set during `collab init`. |
 
 **Key principles:**
 - `uxmaltech/collab-architecture` is always agnostic to business repositories. It defines framework-level knowledge only.
