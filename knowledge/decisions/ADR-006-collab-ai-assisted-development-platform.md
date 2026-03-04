@@ -45,7 +45,7 @@ graph TD
 
     subgraph CANON["Canon (fuente de verdad .md)"]
         CA[collab-architecture<br><i>framework uxmaltech</i>]
-        BCA["{negocio}/collab-architecture"<br><i>canon de negocio</i>]
+        BCA[collab-app-architecture<br><i>canon aplicación</i>]
     end
 
     HUMAN --> CHAT
@@ -125,17 +125,18 @@ The first phase of the Collab workflow. A human provides an initial idea or requ
 
 ### Business Canon Repositories
 
-Each business unit maintains its own architecture canon repository, separate from the uxmaltech framework canon:
+Each application or business unit maintains its own architecture canon repository, separate from the uxmaltech framework canon. **The name of the business canon repo is configurable** — it is NOT tied to a fixed naming convention.
 
 | Repository | Type | Content |
 |-----------|------|---------|
 | `uxmaltech/collab-architecture` | Framework canon | Rules, patterns, and decisions for the uxmaltech framework (CQRS, backoffice-ui, backend-cbq, etc.) |
-| `enviaflores/collab-architecture` | Business canon | Rules, patterns, and decisions specific to EnviaFlores |
-| `{business}/collab-architecture` | Business canon | Rules, patterns, and decisions specific to each business unit |
+| `uxmaltech/collab-app-architecture` | Application canon | Rules, patterns, and decisions specific to the Collab platform (chat, discovery, project management) |
+| *Any configurable repo* | Business canon | Rules, patterns, and decisions specific to each business unit or application |
 
 **Key principles:**
 - `uxmaltech/collab-architecture` is always agnostic to business repositories. It defines framework-level knowledge only.
-- Business canon repos inherit the same structure (knowledge/, domains/, graph/, schema/) and governance process (GOV-R-001).
+- Business/application canon repos inherit the same structure (knowledge/, domains/, graph/, schema/) and governance process (GOV-R-001).
+- The business canon repository name is **configurable per project** — `collab-cli` asks which repository to use during `collab init` (indexed mode). There is no mandatory naming convention.
 - `collab-cli` manages infrastructure that includes both framework and business dimensions. When raising infrastructure, it ingests both canons into the shared MCP (NebulaGraph + Qdrant).
 
 ### Disaster Recovery: Markdown as Source of Truth
@@ -216,7 +217,7 @@ Issues created by the Collab platform enter the standard five-phase governance p
 The `collab-project-manager` tracks which phase each issue is in across all repositories.
 
 Constraints:
-- Epic issues MUST live in the primary business repository or `{business}/collab-architecture` — never in `uxmaltech/collab-architecture`
+- Epic issues MUST live in the primary business repository or the configured business canon repo — never in `uxmaltech/collab-architecture`
 - `uxmaltech/collab-architecture` MUST remain agnostic to business repositories
 - All canon (framework and business) MUST be persisted as `.md` files — graph and vector indexes are derived artifacts
 - The Discovery Agent MUST NOT create issues without human approval of the Epic Brief
@@ -241,7 +242,7 @@ Constraints:
 - A new package `collab-project-manager` MUST be created for project tracking and multi-project visibility
 - `collab-core-pkg` MUST implement the Discovery Agent as the entry point for epic creation
 - The MCP graph schema MUST be extended with `Product` and `Repository` node types to support domain → repo mapping
-- Business units that adopt Collab MUST create their own `{business}/collab-architecture` repository following the framework canon structure
+- Business units that adopt Collab MUST create their own application/business canon repository following the framework canon structure (repo name is configurable)
 - `collab-cli` MUST support ingesting multiple canon sources (framework + business) into a single MCP instance
 - The `collab-chat-ai-pkg` session model MUST support persisting Epic Brief artifacts alongside chat messages
 - All agents in the pipeline MUST use MCP for context — no hardcoded knowledge about business rules or architecture
