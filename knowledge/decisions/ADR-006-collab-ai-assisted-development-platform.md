@@ -28,55 +28,44 @@ Collab is not a single tool — it is an ecosystem of packages and services that
 
 ### Architecture Overview
 
-```
-HUMAN (client / director)
-    |
-    |  Idea, requirement, or problem description
-    |
-    v
-+-----------------------------------------------+
-|  COLLAB — AI-Assisted Development Platform     |
-|                                                |
-|  +--------------+                              |
-|  | Discovery    | <- Phase 1: interview,       |
-|  | Agent        |    gaps, scope, criteria      |
-|  +------+-------+                              |
-|         | Epic Brief (complete)                 |
-|         v                                      |
-|  +--------------+                              |
-|  | Business     | <- User stories, KPIs,       |
-|  | Analyst      |    acceptance criteria        |
-|  +------+-------+                              |
-|         v                                      |
-|  +--------------+                              |
-|  | UI/UX        | <- Journeys, screens,        |
-|  | Architect    |    states, edge cases         |
-|  +------+-------+                              |
-|         v                                      |
-|  +--------------+                              |
-|  | Backend      | <- Commands, events,          |
-|  | Engineer     |    queues, contracts           |
-|  +------+-------+                              |
-|         v                                      |
-|  +--------------+                              |
-|  | Platform     | <- CQRS, DDD, risks,          |
-|  | Architect    |    NFRs, dependencies          |
-|  +------+-------+                              |
-|         v                                      |
-|  +--------------+                              |
-|  | Project      | <- GitHub issues,              |
-|  | Manager      |    sub-issues, tracking        |
-|  +--------------+                              |
-|                                                |
-|  MCP (collab-architecture-mcp)                 |
-|     -> Canon, graph, vectors, rules            |
-+-----------------------------------------------+
-    |
-    v
-GitHub Issues -> GOV-R-001 (5 phases) -> Code -> Canon
-    ^                                              |
-    |                                              |
-    +---------- knowledge flywheel ----------------+
+```mermaid
+graph TD
+    HUMAN[Humano<br><i>idea / requerimiento</i>]
+
+    subgraph APP["collab-laravel-app (interfaz web)"]
+        CHAT[collab-chat-ai-pkg<br><i>chat · streaming · sesiones</i>]
+        CORE[collab-core-pkg<br><i>Discovery Agent · pipeline</i>]
+        PM[collab-project-manager-pkg<br><i>tracking · dashboards</i>]
+    end
+
+    subgraph INFRA["Infraestructura"]
+        CLI[collab-cli<br><i>Docker · providers · canon-sync</i>]
+        MCP[collab-architecture-mcp<br><i>NebulaGraph · Qdrant</i>]
+    end
+
+    subgraph CANON["Canon (fuente de verdad .md)"]
+        CA[collab-architecture<br><i>framework uxmaltech</i>]
+        BCA["{negocio}/collab-architecture"<br><i>canon de negocio</i>]
+    end
+
+    HUMAN --> CHAT
+    CHAT --> CORE
+    CORE -- MCP tools --> MCP
+    CORE -- "Epic + Stories" --> GH[GitHub Issues]
+    PM -- tracking --> GH
+
+    CLI -- docker compose up --> MCP
+    CLI -- canon-sync --> CA
+    CA -- seed + ingest --> MCP
+    BCA -- ingest --> MCP
+
+    GH -- "GOV-R-001 (5 fases)" --> MERGE[Merge a main]
+    MERGE -- "Phase 5: Canon Sync" --> BCA
+    BCA -. "flywheel: MCP actualizado" .-> MCP
+
+    style APP fill:#e8f4f8,stroke:#4a9eff
+    style INFRA fill:#f0f0f0,stroke:#999
+    style CANON fill:#e8f8e8,stroke:#4a9
 ```
 
 ### Package Responsibilities
@@ -181,28 +170,19 @@ A new package `collab-project-manager` provides visibility across all projects a
 
 The system creates a self-reinforcing cycle of knowledge accumulation:
 
-```
-1. Human provides idea
-       |
-2. Discovery Agent interviews human + queries MCP
-       |
-3. Epic + Stories created in GitHub
-       |
-4. GOV-R-001 phases execute (AI agents + humans)
-       |
-5. Code merged to main
-       |
-6. Phase 5 (Canon Sync): architectural learnings extracted
-       |
-7. Business canon updated ({business}/collab-architecture)
-       |
-8. collab-cli ingests updated canon into MCP
-       |
-9. NebulaGraph + Qdrant now contain new knowledge
-       |
-10. Next Discovery session benefits from accumulated knowledge
-        |
-        +---> Back to step 1 (smarter each cycle)
+```mermaid
+graph LR
+    A["1. Idea"] --> B["2. Discovery Agent<br>entrevista + MCP"]
+    B --> C["3. Epic + Stories<br>en GitHub"]
+    C --> D["4. GOV-R-001<br>(5 fases)"]
+    D --> E["5. Merge a main"]
+    E --> F["6. Phase 5<br>Canon Sync"]
+    F --> G["7. Canon negocio<br>actualizado"]
+    G --> H["8. collab-cli<br>ingest → MCP"]
+    H --> I["9. NebulaGraph + Qdrant<br>nuevo conocimiento"]
+    I -. "ciclo se retroalimenta" .-> B
+
+    style I fill:#4a9eff,stroke:#2b7de9,color:#fff
 ```
 
 Each merge to main generates business and architecture canon that feeds back into the MCP. The Discovery Agent becomes progressively more knowledgeable about the business, its patterns, its risks, and its history.
