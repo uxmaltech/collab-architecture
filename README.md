@@ -1,51 +1,184 @@
 # Collab Architecture
 
-Collab Architecture is the canonical architectural memory for UxmalTech systems. It is a knowledge repository that defines how systems are designed, constrained, and evolved inside the Collab ecosystem. It does not contain application source code and it does not describe any single application implementation.
+Collab Architecture es la memoria arquitectónica canónica de los sistemas UxmalTech. Es un repositorio de conocimiento que define cómo se diseñan, restringen y evolucionan los sistemas dentro del ecosistema Collab. No contiene código fuente de aplicaciones y no describe ninguna implementación particular.
 
-Collab, the multi-agent application, reads this repository as authoritative context before it analyzes or modifies code in other repositories. Developers do not edit or query this repository directly during normal development workflows; they interact with it indirectly through Collab agents that propose changes, enforce rules, and record decisions.
+Los agentes LLM usan este repositorio como memoria persistente. El canon está estructurado para soportar razonamiento basado en grafos y recall semántico basado en vectores. Si una regla, patrón o decisión no está presente aquí, no es parte de la arquitectura UxmalTech.
 
-LLM agents use this repository as persistent memory. The canon is structured to support graph-based reasoning and vector-based semantic recall. The graph and vector representations derived from this repository are the source of truth for reasoning, retrieval, and validation. If a rule, pattern, or decision is not present here, it is not part of UxmalTech architecture.
+Separación estricta:
+- El código fuente de aplicaciones vive **fuera** de este repositorio.
+- El conocimiento arquitectónico, reglas y decisiones viven **dentro** de este repositorio.
 
-UxmalTech architecture and technology are defined by the contents of this repository. They include domain boundaries, CQRS conventions, UI contracts, and approved technologies. The content is structured to support machine validation and human review, and is versioned to preserve institutional history.
+Regla gobernante:
+> "If it is not in Collab Architecture, it is not a rule yet."
 
-Strict separation is enforced:
-- Application source code lives outside this repository.
-- Architectural knowledge, rules, and decisions live inside this repository.
+## Ecosistema uxmaltech
 
-Governing rule:
-"If it is not in Collab Architecture, it is not a rule yet."
+```
+┌─────────────┐
+│ Desarrollador│
+└──────┬──────┘
+       v
+┌──────────────┐     canon-sync      ┌─────────────────────┐
+│  collab-cli  │ ──────────────────> │  collab-architecture │  ◄── ESTE REPO
+│ (orquestador)│ <────────────────── │   (fuente de verdad) │
+└──────┬───────┘                     └──────────┬──────────┘
+       │ docker compose up                      │ .md / .yaml
+       v                                        v
+┌──────────────────────┐     seed + ingest     ┌──────────┐
+│ collab-architecture- │ <──────────────────── │ graph/   │
+│ mcp (servidor MCP)   │                       │ seed/    │
+├──────────────────────┤                       └──────────┘
+│ Qdrant (vectores)    │
+│ NebulaGraph (grafo)  │
+└──────────┬───────────┘
+           v
+┌──────────────────────────────────┐
+│ Agentes IA                       │
+│ (Codex, Claude, Gemini, Copilot) │
+└──────────────────────────────────┘
+```
 
-## Modes of Operation
+| Repositorio | Rol | Relación con este repo |
+|-------------|-----|----------------------|
+| [`collab-cli`](https://github.com/uxmaltech/collab-cli) | Orquestador CLI | Lee el canon, levanta infraestructura, sincroniza cambios |
+| **`collab-architecture`** | **Fuente de verdad** | **Este repositorio — define reglas, patrones y decisiones** |
+| [`collab-architecture-mcp`](https://github.com/uxmaltech/collab-architecture-mcp) | Servidor MCP | Expone el canon como grafo + vectores a los agentes IA |
 
-This repository supports two operational modes. The canonical `.md` and `.yaml` files are always the source of truth; graph and vector indexes are derived artifacts that can be rebuilt at any time.
+## Modos de operación
 
-**File-only mode** — Agents read `.md` files directly from this repository. Zero infrastructure dependencies. Best for small canons, single-repo projects, or environments where Docker is unavailable.
+Los archivos `.md` y `.yaml` son siempre la fuente de verdad; los índices de grafo y vectores son artefactos derivados que pueden reconstruirse en cualquier momento.
 
-**Indexed mode** — Agents query NebulaGraph (graph) and Qdrant (vectors) through the MCP server for semantic recall and graph-based reasoning. Best for large canons or multi-repo ecosystems where context windows are insufficient to hold the full canon.
+| Modo | Descripción | Infraestructura | Caso de uso |
+|------|-------------|-----------------|-------------|
+| **file-only** | Los agentes leen los `.md` directamente | Ninguna | Canons pequeños, proyectos single-repo, sin Docker |
+| **indexed** | Los agentes consultan NebulaGraph + Qdrant vía MCP | Docker (NebulaGraph, Qdrant, MCP server) | Canons grandes, ecosistemas multi-repo |
 
-**Disaster recovery:** The `.md` files are canonical. If the graph or vector database is lost, re-run the seed scripts from `collab-architecture-mcp` to rebuild from source files.
+**Heurística de transición:** Cuando el canon supera ~50,000 tokens (~375 archivos), considerar modo indexed. Al 2026-03-01, el canon contiene ~7,300 tokens en 76 archivos — dentro del rango file-only.
 
-**Transition heuristic:** When the canon exceeds ~50,000 tokens (~375 files at current density), consider switching to indexed mode. As of 2026-03-01, the canon contains ~7,300 tokens across 76 files — well within file-only range.
+**Disaster recovery:** Los archivos `.md` son canónicos. Si se pierde el grafo o los vectores, ejecutar los scripts de seed desde `collab-architecture-mcp` para reconstruir desde los archivos fuente.
 
-## MCP Server
+## Estructura del repositorio
 
-The MCP server has been extracted to its own repository: [`uxmaltech/collab-architecture-mcp`](https://github.com/uxmaltech/collab-architecture-mcp). See that repo for setup, tools, environment variables, and deployment.
+| Directorio | Contenido | Ejemplo de IDs |
+|-----------|-----------|---------------|
+| `knowledge/` | Axiomas, decisiones (ADR), convenciones, anti-patrones globales | AX-001, ADR-006, CN-001, AP-001 |
+| `domains/` | Principios, reglas, patrones y anti-patrones por dominio | DOM-001, BO-R-001, CBQ-PAT-003 |
+| `contracts/` | Contratos versionados UI-to-backend | UIC-001, UIC-002 |
+| `graph/` | Schema NebulaGraph y datos de seed | `seed/schema.ngql`, `seed/data.ngql` |
+| `schema/` | Schemas de validación (grafo, vectores, contratos) | `graph.schema.yaml` |
+| `embeddings/` | Configuración de ingestion y fuentes de vectores | `sources.yaml` |
+| `prompts/` | Prompts para agentes de fase, temáticos y Codex | `agents/phase-1-survey.md` |
+| `governance/` | Proceso de implementación, criterios de admisión, revisión | GOV-R-001 |
+| `evolution/` | Changelog canónico, guía de upgrade, deprecaciones | `changelog.md` |
 
-Default MCP endpoint: `http://127.0.0.1:7337/mcp`
+## Sistema de identificadores
 
-## Repository layout
+Cada artefacto canónico tiene un ID estable y único:
 
-- `schema/` — validation schemas for the knowledge graph, vector records, and cross-layer contracts.
-- `domains/` — domain-specific principles, rules, patterns, and anti-patterns.
-- `knowledge/` — axioms, decisions, conventions, and global anti-patterns.
-- `graph/` — node and edge schemas plus a seed dataset used to initialize reasoning.
-- `contracts/` — versioned UI-to-backend contract specifications.
-- `embeddings/` — ingestion source declarations and vector index configuration (canon only).
-- `prompts/` — authoritative prompts for Codex and Collab agents.
-- `evolution/` — records how the canon changes over time.
-- `governance/` — defines how knowledge enters, is reviewed, gains confidence, and how issues are implemented.
+| Patrón | Tipo | Ejemplo |
+|--------|------|---------|
+| `AX-###` | Axioma | AX-001 Authoritative Canon |
+| `ADR-###` | Decisión arquitectónica | ADR-006 Collab AI-Assisted Platform |
+| `CN-###` | Convención | CN-001 Canonical Naming |
+| `AP-###` | Anti-patrón global | AP-001 Architecture in Code |
+| `DOM-###` | Dominio | DOM-001 Backoffice UI |
+| `{DOMAIN}-R-###` | Regla de dominio | BO-R-001, CBQ-R-003, CL-R-006 |
+| `{DOMAIN}-PAT-###` | Patrón de dominio | BO-PAT-001, CBQ-PAT-003 |
+| `{DOMAIN}-AP-###` | Anti-patrón de dominio | BO-AP-001, CBQ-AP-003 |
+| `{DOMAIN}-P-###` | Principio de dominio | BO-P-001, CBQ-P-003 |
+| `UIC-###` | Contrato UI | UIC-001 GridJS List Endpoint |
+| `TECH-###` | Tecnología aprobada | TECH-001 PHP |
+| `GOV-R-###` | Regla de gobernanza | GOV-R-001 Implementation Process |
 
-## Documentation
+## Niveles de confianza
 
-- [Upgrade Guide](evolution/upgrade-guide.md) — cross-repo upgrade procedures and rollback.
-- [GOV-R-001 Implementation Process](governance/implementation-process.md) — mandatory five-phase process for all governed repositories.
+| Nivel | Descripción | Cuándo aplica |
+|-------|-------------|---------------|
+| `experimental` | Propuesta nueva, sin validación en producción | Ideas, ADRs iniciales, visiones |
+| `provisional` | Validado parcialmente, en uso pero no consolidado | Reglas nuevas adoptadas en ≤2 repos |
+| `verified` | Probado en producción y confirmado | Reglas consolidadas en múltiples repos |
+| `deprecated` | Reemplazado o ya no aplica | Sustituido por un artefacto más nuevo |
+
+## Dominios activos
+
+| Dominio | ID | Reglas | Patrones | Anti-patrones |
+|---------|-----|--------|----------|---------------|
+| Backoffice UI | DOM-001 | 12 (BO-R-001..012) | 6 | 7 |
+| Backend CBQ | DOM-002 | 9 (CBQ-R-001..009) | 7 | 5 |
+| Cross-Layer | DOM-003 | 6 (CL-R-001..006) | 4 | 4 |
+
+Cada dominio contiene: `principles.md`, `rules.md`, `anti-patterns.md`, `glossary.md` y un directorio `patterns/`.
+
+## Esquema del grafo
+
+### Tipos de nodo (9)
+
+| Tipo | Prefijo ID | Descripción |
+|------|-----------|-------------|
+| Domain | DOM-### | Dominios arquitectónicos con scope y ownership |
+| ArchitecturalPattern | PAT-### | Patrones canónicos que implementan reglas |
+| Axiom | AX-### | Principios fundamentales inviolables |
+| Rule | RL-### | Reglas de dominio con semántica enforceable |
+| Decision | ADR-### | Decisiones arquitectónicas con rationale |
+| AntiPattern | AP-### | Patrones prohibidos |
+| Convention | CN-### | Convenciones de naming, versioning, estructura |
+| UIContract | UIC-### | Contratos versionados UI↔backend |
+| Technology | TECH-### | Tecnologías aprobadas |
+
+### Tipos de arista (7)
+
+| Tipo | Descripción |
+|------|-------------|
+| IMPLEMENTS | Patrón/Regla implementa algo en un Dominio/Contrato |
+| DEPENDS_ON | Dependencia entre elementos arquitectónicos |
+| APPLIES_TO | Regla/Axioma/Convención aplica a dominios/patrones |
+| CONFLICTS_WITH | Identifica conflictos entre reglas/patrones |
+| REPLACES | Versión nueva reemplaza a versión anterior |
+| JUSTIFIES | Decisión/Regla justifica un Axioma/Decisión |
+| USES_TECHNOLOGY | Dominio/Patrón usa una tecnología aprobada |
+
+Los datos de seed viven en `graph/seed/` (schema.ngql, seed.ngql, data.ngql).
+
+## Gobernanza
+
+### GOV-R-001: Proceso de implementación
+
+Proceso obligatorio de cinco fases para todos los repositorios gobernados:
+
+1. **Phase 1 — Survey**: Explorar codebase, detectar duplicación, proponer diseño, definir criterios de aceptación
+2. **Phase 2 — Change Plan**: Lista de pasos concretos, archivos a crear/modificar/eliminar, dependencias
+3. **Phase 3 — Implementation**: Cambios en bloques pequeños, tests, eliminar duplicación
+4. **Phase 4 — Repo Hygiene**: Disciplina de abstracción, legibilidad, documentación, PR checklist
+5. **Phase 5 — Canon Sync**: Extraer aprendizajes arquitectónicos, actualizar canon, validar consistencia
+
+### Criterios de admisión al canon
+
+- Atómico y limitado a una sola regla, patrón o decisión
+- Incluir ID estable, estado, fecha de creación y nivel de confianza
+- Referenciar dominio(s) aplicables
+- Validado contra schemas del repositorio
+- No duplicar canon existente
+- Escrito en inglés exclusivamente
+
+Documentación completa: [`governance/`](governance/)
+
+## Servidor MCP
+
+El servidor MCP se ha extraído a su propio repositorio: [`uxmaltech/collab-architecture-mcp`](https://github.com/uxmaltech/collab-architecture-mcp).
+
+Endpoint default: `http://127.0.0.1:7337/mcp`
+
+## Documentación
+
+- [GOV-R-001 Implementation Process](governance/implementation-process.md) — proceso obligatorio de cinco fases
+- [What Enters the Canon](governance/what-enters-the-canon.md) — criterios de admisión
+- [Review Process](governance/review-process.md) — proceso de revisión y aprobación
+- [Confidence Levels](governance/confidence-levels.md) — definición de niveles de confianza
+- [Schema Versioning](schema/) — schemas de validación
+- [Upgrade Guide](evolution/upgrade-guide.md) — procedimientos de upgrade cross-repo
+- [Changelog](evolution/changelog.md) — timeline autoritativo de cambios al canon
+- [Prompts](prompts/README.md) — modelo de dos capas (fase + temático) para agentes IA
+
+## Licencia
+
+UNLICENSED
