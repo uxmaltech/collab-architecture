@@ -11,31 +11,19 @@ Separación estricta:
 Regla gobernante:
 > "If it is not in Collab Architecture, it is not a rule yet."
 
-## Ecosistema uxmaltech
+## Ecosistema Collab
 
-```
-┌─────────────┐
-│ Desarrollador│
-└──────┬──────┘
-       v
-┌──────────────┐     canon-sync      ┌─────────────────────┐
-│  collab-cli  │ ──────────────────> │  collab-architecture │  ◄── ESTE REPO
-│ (orquestador)│ <────────────────── │   (fuente de verdad) │
-└──────┬───────┘                     └──────────┬──────────┘
-       │ docker compose up                      │ .md / .yaml
-       v                                        v
-┌──────────────────────┐     seed + ingest     ┌──────────┐
-│ collab-architecture- │ <──────────────────── │ graph/   │
-│ mcp (servidor MCP)   │                       │ seed/    │
-├──────────────────────┤                       └──────────┘
-│ Qdrant (vectores)    │
-│ NebulaGraph (grafo)  │
-└──────────┬───────────┘
-           v
-┌──────────────────────────────────┐
-│ Agentes IA                       │
-│ (Codex, Claude, Gemini, Copilot) │
-└──────────────────────────────────┘
+```mermaid
+graph TD
+    DEV[Desarrollador] --> CLI[collab-cli<br><i>orquestador</i>]
+    CLI -- canon-sync --> CA[collab-architecture<br><i>fuente de verdad</i>]
+    CA -- canon-sync --> CLI
+    CLI -- docker compose up --> MCP[collab-architecture-mcp<br><i>servidor MCP</i>]
+    CA -- ".md / .yaml" --> SEED[graph/seed/]
+    SEED -- seed + ingest --> MCP
+    MCP --> AI[Agentes IA<br><i>Codex · Claude · Gemini · Copilot</i>]
+
+    style CA fill:#4a9eff,stroke:#2b7de9,color:#fff
 ```
 
 | Repositorio | Rol | Relación con este repo |
