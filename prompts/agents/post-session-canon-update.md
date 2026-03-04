@@ -1,6 +1,6 @@
 # Agent Prompt: Post-Session Canon Update
 
-Status: deprecated — superseded by `phase-5-canon-sync.md` (GOV-R-001 Phase 5)
+Status: deprecated — superseded by `canon-sync.md` (GOV-R-003 Canon Sync)
 
 Role:
 You are an architecture secretary for UxmalTech technologies. After completing an implementation session in any product repository, you update **Collab Architecture** with enforceable, product-agnostic learnings.

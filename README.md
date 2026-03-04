@@ -31,7 +31,7 @@ graph TD
 
     CORE -- MCP tools --> MCP
     CORE -- "Epic + Stories" --> GH[GitHub Issues]
-    GH -- "GOV-R-001 → merge → Phase 5" --> BCA["canon aplicación<br><i>(repo configurable)</i>"]
+    GH -- "GOV-R-002 → merge → GOV-R-003" --> BCA["canon aplicación<br><i>(repo configurable)</i>"]
     BCA -- ingest --> MCP
 
     style CA fill:#4a9eff,stroke:#2b7de9,color:#fff
@@ -67,8 +67,8 @@ Los archivos `.md` y `.yaml` son siempre la fuente de verdad; los índices de gr
 | `graph/` | Schema NebulaGraph y datos de seed | `seed/schema.ngql`, `seed/data.ngql` |
 | `schema/` | Schemas de validación (grafo, vectores, contratos) | `graph.schema.yaml` |
 | `embeddings/` | Configuración de ingestion y fuentes de vectores | `sources.yaml` |
-| `prompts/` | Prompts para agentes de fase, temáticos y Codex | `agents/phase-1-survey.md` |
-| `governance/` | Proceso de implementación, criterios de admisión, revisión | GOV-R-001 |
+| `prompts/` | Prompts para agentes de fase, temáticos y Codex | `agents/impl-phase-1-survey-and-plan.md` |
+| `governance/` | Lifecycle (GOV-R-001), implementación (GOV-R-002), canon sync (GOV-R-003) | GOV-R-001, GOV-R-002, GOV-R-003 |
 | `evolution/` | Changelog canónico, guía de upgrade, deprecaciones | `changelog.md` |
 
 ## Sistema de identificadores
@@ -141,15 +141,26 @@ Los datos de seed viven en `graph/seed/` (schema.ngql, seed.ngql, data.ngql).
 
 ## Gobernanza
 
-### GOV-R-001: Proceso de implementación
+### Ciclo de vida de desarrollo
 
-Proceso obligatorio de cinco fases para todos los repositorios gobernados:
+```
+GOV-R-001 (Epic Lifecycle) → GOV-R-002 (Implementation) → GOV-R-003 (Canon Sync)
+```
 
-1. **Phase 1 — Survey**: Explorar codebase, detectar duplicación, proponer diseño, definir criterios de aceptación
-2. **Phase 2 — Change Plan**: Lista de pasos concretos, archivos a crear/modificar/eliminar, dependencias
-3. **Phase 3 — Implementation**: Cambios en bloques pequeños, tests, eliminar duplicación
-4. **Phase 4 — Repo Hygiene**: Disciplina de abstracción, legibilidad, documentación, PR checklist
-5. **Phase 5 — Canon Sync**: Extraer aprendizajes arquitectónicos, actualizar canon, validar consistencia
+### GOV-R-001: Epic Lifecycle
+Discovery → Epic Creation → Story Decomposition. Dirigido por el Discovery Agent (LLM vía collab-core-pkg). Crea Story Issues que alimentan GOV-R-002.
+
+### GOV-R-002: Proceso de implementación
+Proceso obligatorio de tres fases para todos los repositorios gobernados:
+
+1. **Phase 1 — Survey & Change Plan**: Explorar codebase, detectar duplicación, proponer diseño, plan de ejecución concreto
+2. **Phase 2 — Implementation**: Cambios en bloques pequeños, tests, eliminar duplicación, separación de capas
+3. **Phase 3 — Repo Hygiene**: Disciplina de abstracción, legibilidad, documentación, PR checklist
+
+Agentes compatibles: Codex (OpenAI), Claude Code (Anthropic), GitHub Copilot (opción adicional).
+
+### GOV-R-003: Canon Sync
+Post-merge: evaluar, extraer, deduplicar, escribir, validar y commitear entradas canónicas.
 
 ### Criterios de admisión al canon
 
@@ -170,14 +181,16 @@ Endpoint default: `http://127.0.0.1:7337/mcp`
 
 ## Documentación
 
-- [GOV-R-001 Implementation Process](governance/implementation-process.md) — proceso obligatorio de cinco fases
+- [GOV-R-001 Epic Lifecycle](governance/epic-lifecycle.md) — discovery, epic creation, story decomposition
+- [GOV-R-002 Implementation Process](governance/implementation-process.md) — survey & plan, implementation, repo hygiene
+- [GOV-R-003 Canon Sync](governance/canon-sync.md) — extracción de aprendizajes post-merge
 - [What Enters the Canon](governance/what-enters-the-canon.md) — criterios de admisión
 - [Review Process](governance/review-process.md) — proceso de revisión y aprobación
 - [Confidence Levels](governance/confidence-levels.md) — definición de niveles de confianza
 - [Schema Versioning](schema/) — schemas de validación
 - [Upgrade Guide](evolution/upgrade-guide.md) — procedimientos de upgrade cross-repo
 - [Changelog](evolution/changelog.md) — timeline autoritativo de cambios al canon
-- [Prompts](prompts/README.md) — modelo de dos capas (fase + temático) para agentes IA
+- [Prompts](prompts/README.md) — modelo de tres procesos (epic, implementación, canon sync) para agentes IA
 
 ## Licencia
 

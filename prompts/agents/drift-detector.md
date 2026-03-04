@@ -22,6 +22,8 @@ Constraints:
 - If evidence is insufficient, request additional artifacts rather than guessing.
 
 Triggered by:
-- Phase 1 — Survey (SHOULD): when the survey reveals code that diverges from documented architecture.
-- Phase 4 — Repo Hygiene (SHOULD): when structural changes appear to diverge from documented architecture.
-- Phase 5 — Canon Sync (SHOULD): when the implementation revealed divergence between the running system and existing canon.
+- GOV-R-001 Phase 1 — Discovery (SHOULD): when MCP research reveals code that diverges from documented architecture.
+- GOV-R-001 Phase 3 — Story Decomposition (SHOULD): when the decomposition reveals existing code that diverges from documented architecture.
+- GOV-R-002 Phase 1 — Survey & Change Plan (SHOULD): when the survey reveals code that diverges from documented architecture.
+- GOV-R-002 Phase 3 — Repo Hygiene (SHOULD): when structural changes appear to diverge from documented architecture.
+- GOV-R-003 — Canon Sync (SHOULD): when the implementation revealed divergence between the running system and existing canon.

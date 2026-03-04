@@ -1,6 +1,6 @@
-# Agent Prompt: Phase 5 — Canon Sync
+# Agent Prompt: Canon Sync
 
-Implements: GOV-R-001 Phase 5
+Implements: GOV-R-003
 Status: active
 
 Role:
@@ -22,15 +22,14 @@ Process:
 4. **Alignment check.** Before committing, verify internal consistency of the canon:
    - No ID collisions within any category (axioms, decisions, conventions, rules, patterns, anti-patterns, contracts).
    - All new entries include required fields per their category template (ID, Status, Confidence, date).
-   - New graph nodes have corresponding entries in `graph/seed.yaml` with valid edge types per `schema/graph.schema.yaml`.
+   - New graph nodes have corresponding entries in `graph/seed/` with valid edge types per `schema/graph.schema.yaml`.
    - Cross-domain references exist where rules impose obligations on other domains.
    - Index files (`README.md`, `knowledge/README.md`, `domains/README.md`, `prompts/README.md`) reflect the new entries.
    - `embeddings/sources.yaml` covers all new file paths.
    - `evolution/changelog.md` documents the change with correct date ordering.
    - `evolution/deprecated.md` is updated if any entry is deprecated.
 5. **Contracts.** If the implementation introduced or changed UI↔backend response shapes or command outcome shapes, create or update a contract in `/contracts` with semver versioning. State guarantees and invariants explicitly.
-6. **Generalize terminology.** Replace product-specific nouns with technology-level terms: "entity/table" instead of specific table names, "business data store" instead of a specific database name, "backoffice screen" instead of a feature name.
-7. **Validate and commit.** Verify no product-specific names, URLs, customer names, hostnames, or environment-specific details leaked into the canon. Commit with a message prefixed by `Canon:`. Push to the default branch.
+6. **Validate and commit.** Replace product-specific nouns with technology-level terms: "entity/table" instead of specific table names, "business data store" instead of a specific database name. Verify no product-specific names, URLs, customer names, hostnames, or environment-specific details leaked into the canon. Commit with a message prefixed by `Canon:`.
 
 Output:
 - A short report listing:
@@ -44,7 +43,7 @@ Constraints:
 - Do NOT copy application code into the canon.
 - Write only atomic, enforceable rules/patterns/decisions/contracts.
 - If a learning is not reusable across repositories, do not add it to the canon.
-- If no reusable learnings exist, state that Phase 5 was evaluated and found unnecessary — do not force entries.
+- If no reusable learnings exist, state that GOV-R-003 was evaluated and found unnecessary — do not force entries.
 
 Thematic agent triggers:
 - MUST invoke `architecture-reviewer` to validate new canon entries against existing axioms and rules before committing.

@@ -1,87 +1,81 @@
-# GOV-R-001 Implementation Process
+# GOV-R-002 Implementation Process
 
-ID: GOV-R-001
+ID: GOV-R-002
 Status: active
 Confidence: verified
-Created: 2026-03-02
+Created: 2026-03-04
 
-Every issue in a repository governed by collab-architecture MUST [GOV-R-001] follow this five-phase process before merging. The contributor (human or agent) acts as Staff Engineer responsible for architectural coherence of the target repository.
+Every issue in a repository governed by collab-architecture MUST follow this three-phase process before merging. The contributor (human or agent) acts as Staff Engineer responsible for architectural coherence of the target repository.
 
-## Phase 1 — Survey
+## Lifecycle Context
 
-Before writing any code, post a comment on the issue with:
+```
+GOV-R-001 (Epic Lifecycle) → GOV-R-002 (Implementation) → GOV-R-003 (Canon Sync)
+```
 
-1. **Relevant files and modules.** List files in the repo where related logic already exists or should live. The survey MUST be thorough: search across directory structures, grep for related identifiers, and trace import chains. The goal is to leave no relevant file undiscovered, not to hit a specific count.
-2. **Duplication check.** Identify any existing logic that overlaps with the issue scope. If context is missing, propose how to locate what exists before assuming. Invest real effort here: search by function names, domain terms, and structural patterns, not just file names.
+Story Issues created by GOV-R-001 enter this process. After merge, GOV-R-003 determines if architectural learnings should be captured.
+
+## Compatible Agents
+
+The implementation is executed on GitHub (issues, branches, PRs, code review). Compatible agents:
+
+- **Codex (OpenAI)** — agent CLI with multi-file editing capabilities.
+- **Claude Code (Anthropic)** — agent CLI with deep analysis capabilities.
+- **GitHub Copilot** — additional option: native GitHub agent. Low-cost, suitable for plan-guided implementations.
+
+The agent operates on the GitHub issue, creates a branch, implements, and opens a PR.
+
+## Phase 1 — Survey & Change Plan
+
+Before writing any code, analyze the issue and produce a single deliverable combining exploration and execution plan:
+
+### Survey
+1. **Relevant files and modules.** Search across directory structures, grep for related identifiers, and trace import chains. The goal is to leave no relevant file undiscovered.
+2. **Duplication check.** Identify any existing logic that overlaps with the issue scope. Search by function names, domain terms, and structural patterns — not just file names. If context is missing, propose how to locate what exists before assuming.
 3. **Consolidation plan.** If duplications are found, propose how to consolidate before implementing. Never copy/paste logic between modules.
 4. **Design proposal.** Which modules or layers are touched, new interfaces needed, and domain boundaries affected.
 5. **Acceptance criteria and tests.** Define concrete "done" criteria and what tests validate them.
 
-## Phase 2 — Change Plan
+### Change Plan
+6. **Concrete steps in execution order.** Break the implementation into small, ordered tasks. Each step MUST name the specific file(s) it touches and describe the change at function/class level.
+7. **Files to create, modify, or delete.** Produce an explicit list with target paths and purposes.
+8. **Dependencies on other issues.** If the survey reveals blockers or prerequisite work, list them with issue references.
+9. **Risk assessment.** For each step, note if it could break existing tests, affect shared modules, or change public API surfaces.
 
-Post a follow-up comment on the issue with:
+## Phase 2 — Implementation
 
-1. Concrete steps in execution order.
-2. Files to create, modify, or delete.
-3. Dependencies on other issues discovered during the survey.
+1. **Deliver changes in small, explainable blocks.** Each block MUST correspond to one or more steps from the change plan. A block is a set of related changes that can be understood and reviewed independently.
+2. **Update or create tests for each block.** No block is complete without tests that validate it. Tests MUST cover the acceptance criteria defined in Phase 1.
+3. **Eliminate duplication.** Remove any duplication introduced by the change AND any pre-existing related duplication discovered during Phase 1. If a consolidation plan was proposed, execute it.
+4. **Enforce layer separation.** Business logic MUST live in domain or application layers. Endpoints, controllers, and UI handlers MUST only orchestrate — they MUST NOT contain business rules, validation logic, or data transformation.
 
-## Phase 3 — Implementation
-
-1. Deliver changes in small, explainable blocks.
-2. Update or create tests for each block.
-3. Eliminate any duplication introduced or pre-existing related duplication.
-4. Business logic lives in domain or application layers; endpoints only orchestrate.
-
-## Phase 4 — Repo Hygiene
+## Phase 3 — Repo Hygiene
 
 1. **Abstraction discipline.** Extract to a shared module only when the same logic already exists in two or more places. Do not create abstractions preemptively; an abstraction without proven duplication adds indirection and cognitive load for no benefit.
 2. **Readable code.** Classes, functions, and modules MUST be human-readable. Add inline documentation where intent is not obvious from the code itself — but do not over-document: a clear name and a one-line comment beat a paragraph that restates what the code already says.
 3. **Doc maps.** If a new abstraction is introduced, update relevant doc maps so other contributors can discover it.
 4. The PR description MUST list all files modified and which tests to run.
 
-## Phase 5 — Canon Sync
+## Post-Merge Handoff
 
-After the PR is merged, extract reusable architectural learnings and update the collab-architecture canon. This phase ensures that knowledge gained during implementation is captured as enforceable, product-agnostic rules.
+After a PR governed by this process is merged:
 
-1. **Extract candidates.** Review the implementation for recurring patterns, invariants, implicit contracts, and new domain rules. Separate learnings into: domain rules, patterns, decisions (ADR), and cross-layer contracts (UIC).
-2. **Deduplicate.** Search the canon for existing entries that already cover the learning. Update existing entries instead of duplicating.
-3. **Write canonical entries.** Place rules and patterns under the most specific domain folder. Each entry MUST have a stable ID, use enforceable language (MUST/MUST NOT/MAY), and include consequences.
-4. **Alignment check.** Before committing, verify internal consistency of the canon:
-   - No ID collisions within any category (axioms, decisions, conventions, rules, patterns, anti-patterns, contracts).
-   - All new entries include required fields per their category template (ID, Status, Confidence, date).
-   - New graph nodes have corresponding entries in `graph/seed.yaml` with valid edge types per `schema/graph.schema.yaml`.
-   - Cross-domain references exist where rules impose obligations on other domains.
-   - Index files (`README.md`, `knowledge/README.md`, `domains/README.md`, `prompts/README.md`) reflect the new entries.
-   - `embeddings/sources.yaml` covers all new file paths.
-   - `evolution/changelog.md` documents the change with correct date ordering.
-   - `evolution/deprecated.md` is updated if any entry is deprecated.
-5. **Contracts.** If the implementation introduced or changed UI↔backend response shapes, create or update a contract with semver versioning.
-6. **Validate and commit.** Verify no product-specific names leaked into the canon. Commit with a message prefixed by `Canon:`.
-
-This phase MAY be skipped if the implementation introduced no reusable architectural learnings. The contributor MUST explicitly state that Phase 5 was evaluated and found unnecessary.
+1. The contributor MUST evaluate whether [GOV-R-003 Canon Sync](canon-sync.md) applies.
+2. If the implementation introduced reusable architectural learnings, the contributor MUST follow GOV-R-003.
+3. If no learnings exist, the contributor MUST explicitly state that GOV-R-003 was evaluated and found unnecessary.
 
 ## Thematic Agent Triggers
 
-Phase agents (Phase 1–5) MAY invoke thematic agents when specific conditions are met during their phase. Trigger types:
+Phase agents MAY invoke thematic agents when specific conditions are met:
 
 - **MUST**: The phase agent is required to invoke the thematic agent when the condition is met.
-- **SHOULD**: The phase agent is expected to invoke the thematic agent when the condition is met, unless a documented reason justifies skipping it.
+- **SHOULD**: The phase agent is expected to invoke it unless a documented reason justifies skipping.
 
 Triggers are declared in both directions: phase prompts list which thematic agents they may invoke, and thematic agent prompts list which phases may trigger them. This intentional redundancy enables integrity checking.
 
 ## Agent Prompt Synchronization
 
-Every phase defined in this document MUST have a corresponding agent prompt at `prompts/agents/phase-{N}-{slug}.md`. This ensures AI agents always operate according to the current process.
-
-When this document is modified:
-
-1. **Phase added.** A new agent prompt MUST be created in the same PR. The prompt MUST reference the GOV-R-001 phase it implements, define expected inputs and outputs, and follow the structure of existing phase prompts.
-2. **Phase scope updated.** The corresponding agent prompt MUST be updated in the same PR to reflect the new scope. Changes to acceptance criteria, responsibilities, or constraints in a phase MUST be mirrored in the prompt.
-3. **Phase removed.** The corresponding agent prompt MUST be removed or marked deprecated in the same PR.
-4. **`prompts/README.md`** MUST be updated to reflect any structural change to the agent prompt set.
-5. **`evolution/changelog.md`** MUST document the alignment.
-
-A PR that modifies phases in this document without updating the affected agent prompts MUST NOT be merged.
+Every phase defined in this document MUST have a corresponding agent prompt at `prompts/agents/impl-phase-{N}-{slug}.md`. A PR that modifies phases without updating the affected agent prompts MUST NOT be merged.
 
 ## Scope
 
@@ -91,4 +85,4 @@ This process applies to every repository under collab-architecture governance:
 - `collab-cli`
 - Any future repository added to the governance scope.
 
-Trivial fixes (typos, single-line corrections) MAY skip Phase 1 and Phase 2 but MUST still follow Phase 3, Phase 4, and Phase 5.
+Trivial fixes (typos, single-line corrections) MAY skip Phase 1 but MUST still follow Phase 2 and Phase 3.

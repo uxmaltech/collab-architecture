@@ -7,6 +7,22 @@ Evolution policy:
 
 ## 2026-03-04
 
+### Governance Separation: Three-Process Lifecycle
+
+- **Created GOV-R-001 Epic Lifecycle** (`governance/epic-lifecycle.md`): New governance document defining the upstream entry point of the Collab development lifecycle — Discovery, Epic Creation, Story Decomposition. Confidence: experimental.
+- **Renumbered and refactored GOV-R-002 Implementation Process** (`governance/implementation-process.md`): Formerly GOV-R-001. Consolidated old Phase 1 (Survey) + Phase 2 (Change Plan) into a single Phase 1 (Survey & Change Plan). Reduced from 5 phases to 3: Survey & Change Plan, Implementation, Repo Hygiene. Added GitHub Copilot as additional compatible agent. Added Post-Merge Handoff to GOV-R-003.
+- **Created GOV-R-003 Canon Sync** (`governance/canon-sync.md`): Extracted from old Phase 5 of GOV-R-001. Six-step process: Extract Candidates, Deduplicate, Write Entries, Alignment Check, Contracts, Validate & Commit. Confidence: verified.
+- **Established lifecycle pipeline:** `GOV-R-001 (Epic Lifecycle) → GOV-R-002 (Implementation) → GOV-R-003 (Canon Sync)` — shared across all three governance documents.
+- **Created 3 epic lifecycle prompts:** `epic-phase-1-discovery.md`, `epic-phase-2-epic-creation.md`, `epic-phase-3-story-decomposition.md`.
+- **Renamed implementation prompts:** `phase-1-survey.md` + `phase-2-change-plan.md` fused into `impl-phase-1-survey-and-plan.md`; `phase-3-implementation.md` → `impl-phase-2-implementation.md`; `phase-4-repo-hygiene.md` → `impl-phase-3-repo-hygiene.md`.
+- **Renamed canon sync prompt:** `phase-5-canon-sync.md` → `canon-sync.md`.
+- **Updated thematic agent triggers** in `architecture-reviewer.md` and `drift-detector.md` to reference GOV-R-001, GOV-R-002, GOV-R-003 instead of Phase 1–5.
+- **Updated governance auxiliary files:** `review-process.md` and `what-enters-the-canon.md` — replaced "Phase 5" references with GOV-R-003 links.
+- **Consolidated CLAUDE.md into AGENTS.md** — eliminated redundant CLAUDE.md, rewrote AGENTS.md with three-process governance model.
+- **Rewrote `prompts/README.md`** — Three-Process Agent Model documentation with updated trigger map.
+- **Updated `README.md`** — governance section reflects three-process lifecycle; documentation links updated.
+- **Rationale:** The monolithic five-phase GOV-R-001 covered three conceptually distinct processes (epic discovery, implementation, canon sync) with different actors and contexts. Separating them improves clarity, enables independent evolution, and aligns governance IDs with the natural lifecycle order.
+
 ### ADR-006: Collab AI-Assisted Development Platform
 - **Added [ADR-006](../knowledge/decisions/ADR-006-collab-ai-assisted-development-platform.md):** Defines Collab as an AI-assisted software development platform operating as a virtual development company with specialized agents.
 - **Key decisions documented:**

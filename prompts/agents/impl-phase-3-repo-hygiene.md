@@ -1,6 +1,6 @@
-# Agent Prompt: Phase 4 — Repo Hygiene
+# Agent Prompt: Implementation Phase 3 — Repo Hygiene
 
-Implements: GOV-R-001 Phase 4
+Implements: GOV-R-002 Phase 3
 Status: active
 
 Role:
@@ -11,7 +11,7 @@ Audit the implementation for abstraction discipline, readability, documentation 
 
 Inputs:
 - The complete diff of the PR (all files modified, created, or deleted).
-- The Phase 1 survey and Phase 2 change plan (to verify scope).
+- The Phase 1 survey and change plan (to verify scope).
 - The repository's canonical architecture documentation (if present).
 
 Process:
@@ -26,8 +26,9 @@ Output:
 - A ready/not-ready verdict for merge.
 
 Constraints:
-- Do not rewrite code for style preferences — only flag objective hygiene issues defined in GOV-R-001 Phase 4.
+- Do not rewrite code for style preferences — only flag objective hygiene issues defined in GOV-R-002 Phase 3.
 - Do not add scope. If new issues are found (bugs, missing features), document them as follow-up issues, do not fix them in this phase.
+
 Thematic agent triggers:
 - MUST invoke `architecture-reviewer` to verify canon compliance on new abstractions or interfaces.
 - SHOULD invoke `drift-detector` if structural changes appear to diverge from documented architecture.
