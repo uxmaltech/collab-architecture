@@ -17,6 +17,7 @@ Architectural decisions that document choices and their rationale:
 - [ADR-003](decisions/ADR-003-non-canonical-tables.md) — Non-Canonical Tables for Small Static Lists
 - [ADR-004](decisions/ADR-004-third-party-ui-widgets.md) — Third-Party UI Widgets Under Contract Wrappers
 - [ADR-005](decisions/ADR-005-v2-context-topology.md) — V2 Context Topology (Tools + Stores)
+- [ADR-006](decisions/ADR-006-collab-ai-assisted-development-platform.md) — Collab: AI-Assisted Software Development Platform
 
 ### Conventions
 Naming, versioning, and structural conventions:

@@ -5,6 +5,21 @@ Evolution policy:
 - Rule changes require an ADR and, when breaking, a migration guide.
 - This log is the authoritative timeline used to detect architectural drift.
 
+## 2026-03-04
+
+### ADR-006: Collab AI-Assisted Development Platform
+- **Added [ADR-006](../knowledge/decisions/ADR-006-collab-ai-assisted-development-platform.md):** Defines Collab as an AI-assisted software development platform operating as a virtual development company with specialized agents.
+- **Key decisions documented:**
+  - Discovery Agent as role-agnostic LLM that interviews humans to fill epic gaps, consulting MCP for domains, repos, dependencies, and risks.
+  - Epic Issue hierarchy: Epic in primary business repo → Story Issues in contextual repos.
+  - Business canon repos (`{business}/collab-architecture`) separate from framework canon (`uxmaltech/collab-architecture`).
+  - Markdown files as canonical source of truth; NebulaGraph and Qdrant are derived artifacts.
+  - Knowledge flywheel: merge → canon sync → MCP update → smarter discovery next cycle.
+  - New `collab-project-manager` package for multi-project tracking.
+- **Package responsibilities mapped:** collab-laravel-app, collab-chat-ai-pkg, collab-core-pkg, collab-project-manager, collab-architecture, collab-architecture-mcp, collab-cli.
+- **Confidence:** experimental (vision document, implementation pending).
+- **Added ADR-006 Decision vertex to graph/seed/data.ngql** with APPLIES_TO edges to all three domains.
+
 ## 2026-03-03
 
 ### Consolidation Audit Fixes
