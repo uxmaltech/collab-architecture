@@ -27,6 +27,9 @@ Prompts here are authoritative instructions for agents operating within the Coll
   **Canon Sync agent** (aligned to [GOV-R-003](../governance/canon-sync.md)):
   - `canon-sync.md` — Extract reusable learnings and update collab-architecture canon
 
+  **Canon Rebuild agent** (aligned to `collab canon rebuild` command):
+  - `canon-rebuild.md` — Orchestrate full regeneration of derived canon artifacts from source files
+
   **Thematic agents** (cross-cutting, invoked by process agents when conditions are met):
   - `architecture-reviewer.md` — Review proposals and code for canon compliance
   - `drift-detector.md` — Detect divergence between systems and canonical architecture
