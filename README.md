@@ -43,6 +43,9 @@ graph TD
 | [`collab-cli`](https://github.com/uxmaltech/collab-cli) | Orchestrator CLI | Reads the canon, spins up infrastructure, syncs changes |
 | **`collab-architecture`** | **Source of truth** | **This repository — defines rules, patterns, and decisions** |
 | [`collab-architecture-mcp`](https://github.com/uxmaltech/collab-architecture-mcp) | MCP server | Exposes the canon as graph + vectors to AI agents |
+| [`collab-laravel-app`](https://github.com/uxmaltech/collab-laravel-app) | Host application | Laravel app that hosts the application packages |
+| [`collab-core-pkg`](https://github.com/uxmaltech/collab-core-pkg) | Issue orchestration | AI agent pipeline for issue creation via MCP |
+| [`collab-project-manager-pkg`](https://github.com/uxmaltech/collab-project-manager-pkg) | Project manager | Project management package |
 
 ## Operation modes
 
