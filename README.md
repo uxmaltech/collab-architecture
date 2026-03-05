@@ -31,7 +31,7 @@ graph TD
 
     CORE -- MCP tools --> MCP
     CORE -- "Epic + Stories" --> GH[GitHub Issues]
-    GH -- "GOV-R-002 → merge → GOV-R-003" --> BCA["application canon<br><i>(configurable repo)</i>"]
+    GH -- "GOV-R-002 → merge → GOV-R-003" --> BCA[collab-app-architecture<br><i>application canon</i>]
     BCA -- ingest --> MCP
 
     style CA fill:#4a9eff,stroke:#2b7de9,color:#fff
@@ -40,12 +40,14 @@ graph TD
 
 | Repository | Role | Relation to this repo |
 |------------|------|----------------------|
-| [`collab-cli`](https://github.com/uxmaltech/collab-cli) | Orchestrator CLI | Reads the canon, spins up infrastructure, syncs changes |
-| **`collab-architecture`** | **Source of truth** | **This repository — defines rules, patterns, and decisions** |
-| [`collab-architecture-mcp`](https://github.com/uxmaltech/collab-architecture-mcp) | MCP server | Exposes the canon as graph + vectors to AI agents |
-| [`collab-laravel-app`](https://github.com/uxmaltech/collab-laravel-app) | Host application | Laravel app that hosts the application packages |
-| [`collab-core-pkg`](https://github.com/uxmaltech/collab-core-pkg) | Issue orchestration | AI agent pipeline for issue creation via MCP |
-| [`collab-project-manager-pkg`](https://github.com/uxmaltech/collab-project-manager-pkg) | Project manager | Project management package |
+| **`collab-architecture`** | **Framework canon** | **This repo — framework-level rules, patterns, and governance** |
+| [`collab-app-architecture`](https://github.com/uxmaltech/collab-app-architecture) | Application canon | Application-specific rules, patterns, and decisions |
+| [`collab-cli`](https://github.com/uxmaltech/collab-cli) | Orchestrator CLI | Infrastructure CLI — canon sync, init, domain generation |
+| [`collab-architecture-mcp`](https://github.com/uxmaltech/collab-architecture-mcp) | MCP server | NebulaGraph + Qdrant — indexes canon for AI agents |
+| [`collab-laravel-app`](https://github.com/uxmaltech/collab-laravel-app) | Host application | Laravel app that installs the ecosystem packages |
+| [`collab-chat-ai-pkg`](https://github.com/uxmaltech/collab-chat-ai-pkg) | AI Chat package | Chat UI and prompt admin |
+| [`collab-core-pkg`](https://github.com/uxmaltech/collab-core-pkg) | Issue orchestration | AI agent pipeline for issue creation |
+| [`collab-project-manager-pkg`](https://github.com/uxmaltech/collab-project-manager-pkg) | Project manager | Project management functionality |
 
 ## Operation modes
 
