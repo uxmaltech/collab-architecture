@@ -90,6 +90,10 @@ There is no automated test runner. Validate changes by:
 - Link issues when applicable and update `evolution/changelog.md`.
 - Follow the governance review process in `governance/review-process.md` before merging.
 
+## Language Policy
+- All documentation, README files, code comments, and canon entries MUST be written in English.
+- No translations, localized variants, or bilingual files are permitted in any UxmalTech repository.
+
 ## Do Not
 
 - Add application-specific rules here — those belong in the application's own canon repo.
