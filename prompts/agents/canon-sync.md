@@ -18,7 +18,7 @@ Inputs:
 Process:
 1. **Extract candidates.** Identify recurring patterns, invariants, and implicit contracts from the implementation. Categorize into: domain rules (enforceable MUST/MUST NOT), patterns (repeatable solutions with constraints), decisions (ADR when tradeoffs exist), and cross-layer contracts (UIC when UI↔backend shapes are implied).
 2. **Deduplicate.** Search the canon for existing entries that already cover the learning. If an existing entry covers it, update that entry instead of creating a duplicate.
-3. **Write canonical entries.** Place rules and patterns under the most specific domain folder (`domains/backend-cbq/`, `domains/backoffice-ui/`, `domains/cross-layer/`, `knowledge/`). Each entry MUST have a stable ID, status, use enforceable language (MUST/MUST NOT/MAY), avoid implementation-specific details, and include consequences.
+3. **Write canonical entries.** Place rules and patterns under the most specific domain folder (`domains/<repo-name>/`, `domains/cross-layer/`, `knowledge/`). Each entry MUST have a stable ID, status, use enforceable language (MUST/MUST NOT/MAY), avoid implementation-specific details, and include consequences.
 4. **Alignment check.** Before committing, verify internal consistency of the canon:
    - No ID collisions within any category (axioms, decisions, conventions, rules, patterns, anti-patterns, contracts).
    - All new entries include required fields per their category template (ID, Status, Confidence, date).

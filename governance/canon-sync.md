@@ -35,7 +35,7 @@ Search the canon for existing entries that already cover the learning. If an exi
 
 ## Step 3 — Write Canonical Entries
 
-Place rules and patterns under the most specific domain folder (`domains/backend-cbq/`, `domains/backoffice-ui/`, `domains/cross-layer/`, `knowledge/`). Each entry MUST have a stable ID, status, use enforceable language (MUST/MUST NOT/MAY), avoid implementation-specific details, and include consequences.
+Place rules and patterns under the most specific domain folder (`domains/<repo-name>/`, `domains/cross-layer/`, `knowledge/`). Each entry MUST have a stable ID, status, use enforceable language (MUST/MUST NOT/MAY), avoid implementation-specific details, and include consequences.
 
 ## Step 4 — Alignment Check
 
