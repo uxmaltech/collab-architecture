@@ -93,6 +93,8 @@ There is no automated test runner. Validate changes by:
 ## Language Policy
 - All documentation, README files, code comments, and canon entries MUST be written in English.
 - No translations, localized variants, or bilingual files are permitted in any UxmalTech repository.
+- This includes ALL generated content: templates, CI workflows, issue bodies, PR descriptions, error messages, log messages, and string literals in code.
+- AI-generated content (commits, PRs, issues, code) MUST also be in English — no exceptions.
 
 ## Do Not
 
