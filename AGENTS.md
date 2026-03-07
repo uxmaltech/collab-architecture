@@ -46,7 +46,7 @@ GOV-R-001 (Epic Lifecycle) → GOV-R-002 (Implementation) → GOV-R-003 (Canon S
 Discovery → Epic Creation → Story Decomposition. Driven by the Discovery Agent (LLM via collab-core-pkg). Creates Story Issues that feed into GOV-R-002.
 
 ### GOV-R-002 — Implementation Process
-Survey & Change Plan → Implementation → Repo Hygiene. Executed by compatible agents (Codex, Claude Code, GitHub Copilot) on GitHub issues. Trivial fixes MAY skip Phase 1 but MUST follow Phase 2 and Phase 3.
+Survey & Change Plan → Implementation → Repo Hygiene. Executed by compatible AI agents on GitHub issues. Trivial fixes MAY skip Phase 1 but MUST follow Phase 2 and Phase 3.
 
 ### GOV-R-003 — Canon Sync
 After merge, evaluate whether reusable architectural learnings should be captured. If yes, extract, deduplicate, write, validate, and commit canon entries.
@@ -109,3 +109,7 @@ There is no automated test runner. Validate changes by:
 - `Refs #<issue-number>` MAY be used for related work, but it MUST NOT be the only issue reference when the intent is to close the issue automatically.
 - If a pull request is intentionally partial and should leave the issue open, use `Refs #<issue-number>` instead of `Closes #<issue-number>`.
 
+## AI Agent Instruction File Rule
+- `AGENTS.md` is the only repository-level instruction file for AI agents.
+- Do NOT add `CLAUDE.md` or any other assistant-specific duplicate instruction file.
+- Repository guidance for AI agents MUST remain consolidated in `AGENTS.md`.
