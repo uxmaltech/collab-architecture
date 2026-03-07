@@ -103,3 +103,9 @@ There is no automated test runner. Validate changes by:
 - Embed code from application repositories.
 - Duplicate canon entries across domains.
 - Skip `evolution/changelog.md` updates.
+
+## GitHub Issue Closing Rule
+- When a pull request fully completes a GitHub issue, the PR description MUST include `Closes #<issue-number>`.
+- `Refs #<issue-number>` MAY be used for related work, but it MUST NOT be the only issue reference when the intent is to close the issue automatically.
+- If a pull request is intentionally partial and should leave the issue open, use `Refs #<issue-number>` instead of `Closes #<issue-number>`.
+
